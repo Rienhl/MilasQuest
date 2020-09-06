@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace MilasQuest.Grid
+namespace MilasQuest.Grids
 {
     public class Cell
     {

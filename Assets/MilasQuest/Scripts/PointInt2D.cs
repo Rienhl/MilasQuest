@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace MilasQuest.Grid
+namespace MilasQuest.Grids
 {
     //https://www.codeproject.com/Articles/812678/Performance-Considerations-of-Class-Design-and-Gen
     //and

@@ -1,7 +1,7 @@
 ﻿using System;
 using UnityEngine;
 
-namespace MilasQuest.Grid
+namespace MilasQuest.Grids
 {
     public class CellView : MonoBehaviour
     {

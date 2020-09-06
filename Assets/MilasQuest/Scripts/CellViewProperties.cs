@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace MilasQuest.Grid
+namespace MilasQuest.Grids
 {
     [System.Serializable]
     public class CellViewProperties

@@ -1,40 +1,50 @@
 ﻿using System;
 using UnityEngine;
 
-namespace MilasQuest.Grid
+namespace MilasQuest.Grids
 {
+    /// <summary>
+    /// Think MVC, this class contains the view part of the grid. It handles each cells visual representation, animations
+    /// and is used as information source for input processing
+    /// </summary>
     public class GridView : MonoBehaviour
     {
         public CellViewProperties cellProps;
 
-        private Grid grid;
-        private GridViewProperties properties;
-        private Bounds gridBounds;
+        public GridState Grid { get; private set; }
 
-        public CellView[] CellViews { get; private set; }
+        public Bounds GridBounds { get; private set; }
+        public float CellSize { get; private set; }
+        public float CellHalfSize { get; private set; }
+        
+        private CellView[] _cellViews;
+        private GridViewConfig _gridConfig;
 
-        public void Init(Grid grid, GridViewProperties properties)
+        public void Init(GridState grid, GridViewConfig gridConfig)
         {
-            this.grid = grid;
-            this.properties = properties;
+            _gridConfig = gridConfig;
 
-            gridBounds = new Bounds(Vector3.zero, new Vector3(grid.Dimensions.X * properties.cellSize, grid.Dimensions.Y * properties.cellSize));
+            Grid = grid;
+            CellSize = _gridConfig.cellSize;
+            CellHalfSize = _gridConfig.cellSize * 0.5f;
+            GridBounds = new Bounds(Vector3.zero, new Vector3(grid.CellCount.X * gridConfig.cellSize, grid.CellCount.Y * gridConfig.cellSize));
+            PlaceCells();
         }
 
         private void PlaceCells()
         {
-            CellViews = new CellView[grid.Dimensions.X * grid.Dimensions.Y]; //this currently only supports rectangle grids, for jagged grids we need another system
-            for (int x = 0; x < grid.Dimensions.X; x++)
+            _cellViews = new CellView[Grid.CellCount.X * Grid.CellCount.Y]; //this currently only supports rectangle grids, for jagged grids we need another system
+            for (int x = 0; x < Grid.CellCount.X; x++)
             {
-                for (int y = 0; y < grid.Dimensions.Y; y++)
+                for (int y = 0; y < Grid.CellCount.Y; y++)
                 {
                     CellView cellView = new GameObject().AddComponent<CellView>();
                     cellView.gameObject.AddComponent<SpriteRenderer>();
-                    cellView.Init(grid.Cells[x][y], cellProps);
+                    cellView.Init(Grid.Cells[x][y], cellProps);
                     cellView.gameObject.name = "Cell " + cellView.Cell.Index.ToString();
-                    cellView.transform.localPosition = GetLocalPositionFromIndex(grid.Cells[x][y].Index);
+                    cellView.transform.localPosition = GetLocalPositionFromIndex(Grid.Cells[x][y].Index);
                     cellView.OnCellIndexUpdated += HandleOnCellIndexUpdated;
-                    CellViews[x + y * grid.Dimensions.X] = cellView;
+                    _cellViews[x + y * Grid.CellCount.X] = cellView;
                 }
             }
         }
@@ -46,16 +56,7 @@ namespace MilasQuest.Grid
 
         private Vector3 GetLocalPositionFromIndex(PointInt2D index)
         {
-            return new Vector3(index.X * properties.cellSize + properties.GetHalfCellSize() + gridBounds.min.x, index.Y * properties.cellSize + properties.GetHalfCellSize() + gridBounds.min.y, gridBounds.center.z);
-        }
-
-        private void Update()
-        {
-            if (UnityEngine.Input.GetKeyDown(KeyCode.Space))
-            {
-                Init(new Grid(new PointInt2D() { X = 10, Y = 15 }), new GridViewProperties() { cellSize = 1f});
-                PlaceCells();
-            }
+            return new Vector3(index.X * CellSize + CellHalfSize + GridBounds.min.x, index.Y * CellSize + CellHalfSize + GridBounds.min.y, GridBounds.center.z);
         }
     }
 }
