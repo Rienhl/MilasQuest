@@ -6,6 +6,7 @@ namespace MilasQuest.Grids
     //and
     //https://docs.microsoft.com/en-us/dotnet/api/system.object.gethashcode?redirectedfrom=MSDN&view=netcore-3.1#System_Object_GetHashCode
     //explain the need for overriding the Equals and GetHashCode methods when using structs.
+    [System.Serializable]
     public struct PointInt2D : IEquatable<PointInt2D>
     {
         public int X;

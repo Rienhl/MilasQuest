@@ -11,6 +11,7 @@ namespace MilasQuest.Grids
         public Action OnIndexUpdated;
         public Action OnSelected;
         public Action OnUnselected;
+        public Action OnRemoved;
 
         public Cell(int x, int y)
         {
@@ -23,16 +24,6 @@ namespace MilasQuest.Grids
             OnIndexUpdated?.Invoke();
         }
 
-        public static bool operator ==(Cell a, Cell b)
-        {
-            return (a.Index == b.Index) && (a.CellType == b.CellType);
-        }
-
-        public static bool operator !=(Cell a, Cell b)
-        {
-            return (a.Index != b.Index) && (a.CellType != b.CellType);
-        }
-
         internal void SetAsSelected(bool selected = true)
         {
             IsSelected = selected;
@@ -40,6 +31,11 @@ namespace MilasQuest.Grids
                 OnSelected?.Invoke();
             else
                 OnUnselected?.Invoke();
+        }
+
+        internal void Remove()
+        {
+            OnRemoved?.Invoke();
         }
     }
 }

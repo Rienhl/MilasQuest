@@ -14,20 +14,23 @@ namespace MilasQuest
 {
     public class Game : MonoBehaviour
     {
-        public GridView gridView;
+        [SerializeField]
+        private GridView gridView;
 
         private InputHandler _inputHandler;
         private GridInputConversor _gridInputConversor;
         private CellChainer _cellChainer;
+        private GridState _grid;
 
         private void Start()
         {
-            gridView.Init(new GridState(new PointInt2D() { X = 10, Y = 15 }), new GridViewConfig() { cellSize = 1f });
+            _grid = new GridState(new GridConfig() { dimension = new PointInt2D() { X = 8, Y = 12 } });
+            gridView.Init(_grid, new GridViewConfig() { cellSize = 1f });
             _gridInputConversor = new GridInputConversor();
             _inputHandler = SolveInputHandler();
             _gridInputConversor.Setup(_inputHandler, gridView, Camera.main);
             _gridInputConversor.Enable(true);
-            _cellChainer = new CellChainer(gridView.Grid.CellCount);
+            _cellChainer = new CellChainer(_grid.Dimension);
 
             _gridInputConversor.OnGridInputStarted += HandleOnGridInputStarted;
             _gridInputConversor.OnGridInputUpdated += HandleOnGridInputUpdated;
@@ -37,21 +40,23 @@ namespace MilasQuest
 
         private void HandleOnGridInputStarted(PointInt2D newPoint)
         {
-            if (GridUtils.IsPointOutOfGridBounds(newPoint, gridView.Grid.CellCount.X, gridView.Grid.CellCount.Y))
+            if (GridUtils.IsPointOutOfGridBounds(newPoint, _grid.Dimension.X, _grid.Dimension.Y))
                 return;
             _cellChainer.ChainNewCell(gridView.Grid.Cells[newPoint.X][newPoint.Y]);
         }
 
         private void HandleOnGridInputUpdated(PointInt2D newPoint)
         {
-            if (GridUtils.IsPointOutOfGridBounds(newPoint, gridView.Grid.CellCount.X, gridView.Grid.CellCount.Y))
+            if (GridUtils.IsPointOutOfGridBounds(newPoint, _grid.Dimension.X, _grid.Dimension.Y))
                 return;
             _cellChainer.ChainNewCell(gridView.Grid.Cells[newPoint.X][newPoint.Y]);
         }
 
         private void HandleOnGridInputEnded(PointInt2D newPoint)
         {
+            _grid.RemoveCells(_cellChainer.ChainedCells);
             _cellChainer.ChainEnded();
+            
         }
 
         private void HandleOnGridInputCancelled()
@@ -203,6 +208,7 @@ namespace MilasQuest
                 case CELL_EVALUATION_OUTPUT.ADD:
                     newCell.SetAsSelected();
                     ChainedCells.Add(newCell);
+                    Debug.Log($"Added Cell {newCell.Index}");
                     break;
                 case CELL_EVALUATION_OUTPUT.DONT_ADD:
                     break;
@@ -213,7 +219,6 @@ namespace MilasQuest
                 default:
                     break;
             }
-            Debug.Log($"Added Cell {newCell.Index}");
         }
 
         public void ChainEnded()

@@ -1,6 +1,6 @@
-﻿using Cinemachine;
-using System;
+﻿using System;
 using UnityEngine;
+using DG.Tweening;
 
 namespace MilasQuest.Grids
 {
@@ -11,6 +11,7 @@ namespace MilasQuest.Grids
         public Cell Cell { get; private set; }
 
         private CellViewProperties cellViewProperties;
+        private Color originColor;
 
         public Action<CellView> OnCellIndexUpdated;
 
@@ -22,29 +23,38 @@ namespace MilasQuest.Grids
             if (cellSprite == null)
                 cellSprite = GetComponent<SpriteRenderer>();
             cellSprite.sprite = properties.sprite;
-            cellSprite.color = UnityEngine.Random.ColorHSV();
+            cellSprite.color = cellViewProperties.rndmColors[UnityEngine.Random.Range(0, cellViewProperties.rndmColors.Length)];
+            originColor = cellSprite.color;
 
             Cell.OnIndexUpdated += HandleOnIndexUpdated;
             Cell.OnSelected += HandleOnCellSelected;
             Cell.OnUnselected += HandleOnCellUnselected;
+            Cell.OnRemoved += HandleOnRemoved;
         }
 
         private void HandleOnCellUnselected()
         {
-            cellSprite.color = Color.red;
-            transform.localScale = Vector3.one;
+            cellSprite.DOFade(originColor.a, 0.3f);
         }
 
         private void HandleOnCellSelected()
         {
-            cellSprite.color = Color.green;
-            transform.localScale *= 1.1f;
+            cellSprite.DOFade(1, 0.3f);
+            transform.DOShakeScale(0.5f, 0.7f);
         }
 
         public void DestroyCell()
         {
             Cell.OnIndexUpdated -= HandleOnIndexUpdated;
             Cell.OnSelected -= HandleOnCellSelected;
+            Cell.OnUnselected -= HandleOnCellUnselected;
+            Cell.OnRemoved -= HandleOnRemoved;
+        }
+
+        private void HandleOnRemoved()
+        {
+            DestroyCell();
+            Destroy(this.gameObject);
         }
 
         private void HandleOnIndexUpdated()

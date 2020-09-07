@@ -4,5 +4,6 @@
     public class GridViewConfig
     {
         public float cellSize;
+        public PointInt2D dimension;
     }
 }
