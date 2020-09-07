@@ -1,16 +1,23 @@
 ﻿using MilasQuest.Grids;
+using System;
 using UnityEngine;
 
 namespace MilasQuest.InputManagement
 {
-    public class GridInputSampler
+    public class GridInputConversor
     {
         private InputHandler _inputHandler;
         private GridView _gridView;
         private Camera _cam;
-
         private bool _isEnabled;
-        private Vector3 _currentWorldPosition;
+
+        private Vector3 _worldPosition;
+        private PointInt2D _gridPoint;
+
+        public Action<PointInt2D> OnGridInputStarted;
+        public Action<PointInt2D> OnGridInputUpdated;
+        public Action<PointInt2D> OnGridInputEnded;
+        public Action OnGridInputCancelled;
 
         public void Setup(InputHandler inputHandler, GridView gridView, Camera gridCam)
         {
@@ -23,6 +30,8 @@ namespace MilasQuest.InputManagement
         {
             if (_isEnabled == enable)
                 return;
+
+            _isEnabled = enable;
 
             if (enable)
                 RegisterToInputHandler();
@@ -48,30 +57,25 @@ namespace MilasQuest.InputManagement
 
         private void HandleOnInputStarted(Vector2 input)
         {
-            Debug.Log("Input Started");
-            _currentWorldPosition = ConvertToWorldPosition(input);
-            if (IsPositionOutOfGridBounds(_currentWorldPosition))
-                return;
-            Debug.Log("GridPos: " + SampleAsGridPoint(_currentWorldPosition));
-            //convert to cell index
-            //check if it should be discarded
+            StoreCurrentPoint(input);
+            OnGridInputStarted?.Invoke(_gridPoint);
         }
 
         private void HandleOnInputUpdated(Vector2 input)
         {
-            _currentWorldPosition = ConvertToWorldPosition(input);
-            if (IsPositionOutOfGridBounds(_currentWorldPosition))
-                return;
+            StoreCurrentPoint(input);
+            OnGridInputUpdated?.Invoke(_gridPoint);
         }
 
         private void HandleOnInputEnded(Vector2 input)
         {
-            
+            StoreCurrentPoint(input);
+            OnGridInputEnded?.Invoke(_gridPoint);
         }
 
         private void HandleOnInputCancelled(Vector2 input)
         {
-            
+            OnGridInputCancelled?.Invoke();
         }
 
         private Vector3 ConvertToWorldPosition(Vector2 input)
@@ -79,22 +83,13 @@ namespace MilasQuest.InputManagement
             return _cam.ScreenToWorldPoint(input);
         }
 
-        private bool IsPositionOutOfGridBounds(Vector3 position)
+        //This stores out of bounds points on the grid.
+        //Even though it might sound wrong at first, it is not this class' responsibility to decide if out of bounds input should be sampled or not.
+        //This will be a responsibility of this class' consumer, some interesting gameplay can arise from allowing out of bounds input
+        private void StoreCurrentPoint(Vector2 rawInput)
         {
-            return position.x < _gridView.GridBounds.min.x ||
-                    position.x > _gridView.GridBounds.max.x ||
-                    position.y < _gridView.GridBounds.min.y ||
-                    position.y > _gridView.GridBounds.max.y;
+            _worldPosition = ConvertToWorldPosition(rawInput);
+            _gridPoint = GridUtils.SampleAsGridPoint(_worldPosition, _gridView.GridBounds.min.x, _gridView.GridBounds.min.y, _gridView.CellSize);
         }
-
-        private PointInt2D SampleAsGridPoint(Vector3 input)
-        {
-            return new PointInt2D()
-            {
-                X = Mathf.FloorToInt((input.x - _gridView.GridBounds.min.x) / _gridView.CellSize),
-                Y = Mathf.FloorToInt((input.y - _gridView.GridBounds.min.y) / _gridView.CellSize)
-            };
-        }
-
     }
 }

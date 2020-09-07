@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Cinemachine;
+using System;
 using UnityEngine;
 
 namespace MilasQuest.Grids
@@ -24,11 +25,26 @@ namespace MilasQuest.Grids
             cellSprite.color = UnityEngine.Random.ColorHSV();
 
             Cell.OnIndexUpdated += HandleOnIndexUpdated;
+            Cell.OnSelected += HandleOnCellSelected;
+            Cell.OnUnselected += HandleOnCellUnselected;
+        }
+
+        private void HandleOnCellUnselected()
+        {
+            cellSprite.color = Color.red;
+            transform.localScale = Vector3.one;
+        }
+
+        private void HandleOnCellSelected()
+        {
+            cellSprite.color = Color.green;
+            transform.localScale *= 1.1f;
         }
 
         public void DestroyCell()
         {
             Cell.OnIndexUpdated -= HandleOnIndexUpdated;
+            Cell.OnSelected -= HandleOnCellSelected;
         }
 
         private void HandleOnIndexUpdated()

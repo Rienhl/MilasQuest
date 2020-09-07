@@ -49,5 +49,25 @@ namespace MilasQuest.Grids
         {
             return "[" + X + ", " + Y + "]";
         }
+
+        public static bool operator ==(PointInt2D a, PointInt2D b)
+        {
+            return a.Equals(b);
+        }
+
+        public static bool operator !=(PointInt2D a, PointInt2D b)
+        {
+            return !a.Equals(b);
+        }
+
+        public static PointInt2D operator +(PointInt2D a, PointInt2D b)
+        {
+            return new PointInt2D() { X = a.X + b.X, Y = a.Y + b.Y };
+        }
+        
+        public static PointInt2D operator -(PointInt2D a, PointInt2D b)
+        {
+            return new PointInt2D() { X = a.X - b.X, Y = a.Y - b.Y };
+        }
     }
 }
