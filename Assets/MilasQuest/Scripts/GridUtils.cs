@@ -6,14 +6,18 @@ namespace MilasQuest.InputManagement
     public static class GridUtils
     {
         private static PointInt2D[] surroundingPoints;
+        private static GridInputInfo inputInfo;
 
-        public static PointInt2D SampleAsGridPoint(Vector3 input, float minX, float minY, float cellSize)
+        public static GridInputInfo SampleGridInputInfo(Vector3 input, float minX, float minY, float cellSize)
         {
-            return new PointInt2D()
+            inputInfo = new GridInputInfo();
+            inputInfo.point = new PointInt2D()
             {
                 X = Mathf.FloorToInt((input.x - minX) / cellSize),
                 Y = Mathf.FloorToInt((input.y - minY) / cellSize)
             };
+            inputInfo.ratioToCenter = Vector3.Distance(input, new Vector3(minX + cellSize * 0.5f + inputInfo.point.X * cellSize, minY + cellSize * 0.5f + inputInfo.point.Y * cellSize, input.z)) / cellSize * 0.5f;
+            return inputInfo;
         }
 
         public static bool IsPositionOutOfGridBounds(Vector3 position, float minX, float maxX, float minY, float maxY)

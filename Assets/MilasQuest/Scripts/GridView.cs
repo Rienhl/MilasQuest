@@ -17,6 +17,7 @@ namespace MilasQuest.Grids
         public Bounds GridBounds { get; private set; }
         public float CellSize { get; private set; }
         public float CellHalfSize { get; private set; }
+        public float ActiveInputRadius { get; private set; }
         
         private CellView[] _cellViews;
         private GridViewConfig _gridConfig;
@@ -28,6 +29,7 @@ namespace MilasQuest.Grids
             Grid = grid;
             CellSize = _gridConfig.cellSize;
             CellHalfSize = _gridConfig.cellSize * 0.5f;
+            ActiveInputRadius = CellHalfSize * _gridConfig.validInputRatio;
             GridBounds = new Bounds(Vector3.zero, new Vector3(grid.Dimension.X * gridConfig.cellSize, grid.Dimension.Y * gridConfig.cellSize));
             PlaceCells();
         }

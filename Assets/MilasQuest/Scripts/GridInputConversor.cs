@@ -4,6 +4,31 @@ using UnityEngine;
 
 namespace MilasQuest.InputManagement
 {
+    public struct GridInputInfo : IEquatable<GridInputInfo>
+    {
+        public PointInt2D point;
+        public float ratioToCenter;
+
+        public bool Equals(GridInputInfo other)
+        {
+            return this.point == other.point && this.ratioToCenter == other.ratioToCenter;
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (obj == null)
+                return false;
+            if (obj.GetType() != this.GetType())
+                return false;
+            return this.Equals((GridInputInfo)obj);
+        }
+
+        public override int GetHashCode()
+        {
+            return point.GetHashCode() * Mathf.RoundToInt(ratioToCenter * 100f);
+        }
+    }
+
     public class GridInputConversor
     {
         private InputHandler _inputHandler;
@@ -12,14 +37,14 @@ namespace MilasQuest.InputManagement
         private bool _isEnabled;
 
         private Vector3 _worldPosition;
-        private PointInt2D _gridPoint;
+        private GridInputInfo _inputInfo;
 
         public Action<PointInt2D> OnGridInputStarted;
         public Action<PointInt2D> OnGridInputUpdated;
         public Action<PointInt2D> OnGridInputEnded;
         public Action OnGridInputCancelled;
 
-        public void Setup(InputHandler inputHandler, GridView gridView, Camera gridCam)
+        public GridInputConversor(InputHandler inputHandler, GridView gridView, Camera gridCam)
         {
             _inputHandler = inputHandler;
             _gridView = gridView;
@@ -58,19 +83,21 @@ namespace MilasQuest.InputManagement
         private void HandleOnInputStarted(Vector2 input)
         {
             StoreCurrentPoint(input);
-            OnGridInputStarted?.Invoke(_gridPoint);
+            if (_inputInfo.ratioToCenter <= _gridView.ActiveInputRadius)
+                OnGridInputStarted?.Invoke(_inputInfo.point);
         }
 
         private void HandleOnInputUpdated(Vector2 input)
         {
             StoreCurrentPoint(input);
-            OnGridInputUpdated?.Invoke(_gridPoint);
+            if (_inputInfo.ratioToCenter <= _gridView.ActiveInputRadius)
+                OnGridInputUpdated?.Invoke(_inputInfo.point);
         }
 
         private void HandleOnInputEnded(Vector2 input)
         {
             StoreCurrentPoint(input);
-            OnGridInputEnded?.Invoke(_gridPoint);
+            OnGridInputEnded?.Invoke(_inputInfo.point);
         }
 
         private void HandleOnInputCancelled(Vector2 input)
@@ -89,7 +116,7 @@ namespace MilasQuest.InputManagement
         private void StoreCurrentPoint(Vector2 rawInput)
         {
             _worldPosition = ConvertToWorldPosition(rawInput);
-            _gridPoint = GridUtils.SampleAsGridPoint(_worldPosition, _gridView.GridBounds.min.x, _gridView.GridBounds.min.y, _gridView.CellSize);
+            _inputInfo = GridUtils.SampleGridInputInfo(_worldPosition, _gridView.GridBounds.min.x, _gridView.GridBounds.min.y, _gridView.CellSize);
         }
     }
 }

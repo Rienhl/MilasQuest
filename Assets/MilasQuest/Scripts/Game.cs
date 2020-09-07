@@ -25,10 +25,9 @@ namespace MilasQuest
         private void Start()
         {
             _grid = new GridState(new GridConfig() { dimension = new PointInt2D() { X = 8, Y = 12 } });
-            gridView.Init(_grid, new GridViewConfig() { cellSize = 1f });
-            _gridInputConversor = new GridInputConversor();
+            gridView.Init(_grid, new GridViewConfig() { cellSize = 1f, validInputRatio = 0.5f });
             _inputHandler = SolveInputHandler();
-            _gridInputConversor.Setup(_inputHandler, gridView, Camera.main);
+            _gridInputConversor = new GridInputConversor(_inputHandler, gridView, Camera.main);
             _gridInputConversor.Enable(true);
             _cellChainer = new CellChainer(_grid.Dimension);
 
