@@ -2,6 +2,7 @@
 using UnityEngine;
 using DG.Tweening;
 using UnityEngine.Rendering.UI;
+using TMPro;
 
 namespace MilasQuest.Grids
 {
@@ -14,7 +15,8 @@ namespace MilasQuest.Grids
         private CellViewProperties cellViewProperties;
         private Color originColor;
         private Vector3 _targetPos;
-        private bool _isMovementCueded;
+        private bool _eventsRegistered;
+        public bool IsCuedForMovement { get; private set; }
 
         public Action<CellView> OnCellIndexUpdated;
 
@@ -28,21 +30,41 @@ namespace MilasQuest.Grids
             cellSprite.sprite = properties.sprite;
             cellSprite.color = cellViewProperties.rndmColors[cell.CellType];
             originColor = cellSprite.color;
+            _eventsRegistered = false;
 
+            RegisterViewListeners();
+        }
+
+        public void RegisterViewListeners()
+        {
+            if (_eventsRegistered)
+                return;
+            _eventsRegistered = true;
             Cell.OnIndexUpdated += HandleOnIndexUpdated;
             Cell.OnSelected += HandleOnCellSelected;
             Cell.OnUnselected += HandleOnCellUnselected;
         }
 
-        private void HandleOnCellUnselected()
+        public void UnregisterViewListeners()
         {
-            cellSprite.DOFade(originColor.a, 0.3f);
+            if (!_eventsRegistered)
+                return;
+            _eventsRegistered = false;
+            Cell.OnIndexUpdated -= HandleOnIndexUpdated;
+            Cell.OnSelected -= HandleOnCellSelected;
+            Cell.OnUnselected -= HandleOnCellUnselected;
         }
 
         private void HandleOnCellSelected()
         {
+            Debug.Log("selected");
             cellSprite.DOFade(1, 0.3f);
             transform.DOShakeScale(0.5f, 0.7f);
+        }
+
+        private void HandleOnCellUnselected()
+        {
+            cellSprite.DOFade(originColor.a, 0.3f);
         }
 
         public void DestroyCell()
@@ -63,15 +85,14 @@ namespace MilasQuest.Grids
         public void CueMovement(Vector3 newPos)
         {
             _targetPos = newPos;
-            _isMovementCueded = true;
+            IsCuedForMovement = true;
         }
 
-        public void PlayMovement()
+        public void PlayMovement(Action onCompleteCallback = null)
         {
-            if (_isMovementCueded)
+            if (IsCuedForMovement)
             {
-                Debug.Log(Cell.Index);
-                this.gameObject.transform.DOMove(_targetPos, 0.5f).SetEase(Ease.OutBounce).OnComplete(() => _isMovementCueded = false);
+                this.gameObject.transform.DOMove(_targetPos, 0.5f).SetEase(Ease.OutBounce).OnComplete(() => { IsCuedForMovement = false; onCompleteCallback?.Invoke(); });
 
             }
         }

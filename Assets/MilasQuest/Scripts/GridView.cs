@@ -1,6 +1,7 @@
 ﻿using DG.Tweening;
 using System;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 
 namespace MilasQuest.Grids
@@ -23,6 +24,7 @@ namespace MilasQuest.Grids
         private List<CellView> _cellViews;
         private GridViewConfig _gridConfig;
 
+        private int _movingCellsCount = 0;
         public Action OnAllCellsUpdated;
 
         public void Init(GridState grid, GridViewConfig gridConfig)
@@ -38,6 +40,24 @@ namespace MilasQuest.Grids
             Grid.OnNewCellSpawned += HandleOnNewCellAdded;
             Grid.OnCellRemoved += HandleOnCellRemoved;
             Grid.OnGridFinishedUpdating += HandleOnGridFinishedUpdating;
+        }
+
+        public void SetViewResponsiveness(bool enable)
+        {
+            if (enable)
+            {
+                for (int i = 0; i < _cellViews.Count; i++)
+                {
+                    _cellViews[i].RegisterViewListeners();
+                }
+            }
+            else
+            {
+                for (int i = 0; i < _cellViews.Count; i++)
+                {
+                    _cellViews[i].UnregisterViewListeners();
+                }
+            }
         }
 
         private void PlaceCells()
@@ -84,11 +104,22 @@ namespace MilasQuest.Grids
 
         private void HandleOnGridFinishedUpdating()
         {
-            Debug.Log("Finished Updating Cell Views: " + _cellViews.Count);
+            _movingCellsCount = 0;
             for (int i = 0; i < _cellViews.Count; i++)
             {
-                _cellViews[i].PlayMovement();
+                if (_cellViews[i].IsCuedForMovement)
+                {
+                    _movingCellsCount++;
+                    _cellViews[i].PlayMovement(CheckForMovementDone);
+                }
             }
+        }
+
+        private void CheckForMovementDone()
+        {
+            _movingCellsCount--;
+            if (_movingCellsCount <= 0)
+                OnAllCellsUpdated?.Invoke();
         }
 
         private void HandleOnCellIndexUpdated(CellView cellView)

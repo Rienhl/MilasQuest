@@ -1,6 +1,7 @@
 ﻿using MilasQuest.InputManagement;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.Design;
 using UnityEngine;
 using UnityEngine.Assertions.Must;
 
@@ -76,52 +77,78 @@ namespace MilasQuest.Grids
         }
 
 
-        private bool IsDeadlocked()
+        public bool IsDeadlocked(CellChainer chainer)
         {
             List<Cell> openList = new List<Cell>();
             List<Cell> closedList = new List<Cell>();
-            PointInt2D[] auxSurroundingPoints = new PointInt2D[8];
+
+            chainer.RemoveCondition(CELL_CHAIN_CONDITION.IS_NEIGHBOUR_TO_LAST);
 
             for (int x = 0; x < Dimension.X; x++)
             {
                 for (int y = 0; y < Dimension.Y; y++)
                 {
                     Cell cellToCheck = Cells[x][y];
-                    if (closedList.Contains(cellToCheck)) //have I checked this cell before?
+                    if (closedList.Contains(cellToCheck))
                         continue;
-                    if (openList.Contains(cellToCheck)) //is cell already part of my current solution?
+                    if (chainer.ChainedCells.Contains(cellToCheck))
                         continue;
-
-                    openList.Add(cellToCheck);
-                    auxSurroundingPoints = GridUtils.GetSurroundingPoints(cellToCheck.Index);
-
-                    for (int i = 0; i < auxSurroundingPoints.Length; i++)
+                    openList.Clear();
+                    chainer.ChainNewCell(cellToCheck);
+                    if (AreNeighboursDeadlocked(cellToCheck, chainer, openList))
                     {
-                        if (GridUtils.IsPointOutOfGridBounds(auxSurroundingPoints[i], Dimension.X, Dimension.Y))
-                            continue;
-                        if (closedList.Contains(Cells[auxSurroundingPoints[i].X][auxSurroundingPoints[i].Y]))
-                            continue;
-                        if (openList.Contains(Cells[auxSurroundingPoints[i].X][auxSurroundingPoints[i].Y]))
-                            continue;
-                        if (Cells[auxSurroundingPoints[i].X][auxSurroundingPoints[i].Y].CellType != Cells[x][y].CellType)
-                            continue;
-                        openList.Add(Cells[auxSurroundingPoints[i].X][auxSurroundingPoints[i].Y]);
-                        if (openList.Count >= 3)
-                            return true;
-                    }
-
-                    if (openList.Count > 1)
-                    {
-
+                        closedList.AddRange(chainer.ChainedCells);
+                        chainer.ChainEnded();
                     }
                     else
                     {
-                        closedList.Add(cellToCheck);
-                        openList.Clear();
+                        chainer.AddCondition(CELL_CHAIN_CONDITION.IS_NEIGHBOUR_TO_LAST);
+                        chainer.ChainEnded();
+                        return false;
                     }
                 }
             }
-            return false;
+            chainer.AddCondition(CELL_CHAIN_CONDITION.IS_NEIGHBOUR_TO_LAST);
+            chainer.ChainEnded();
+            Debug.Log("DEADLOCK!");
+            return true;
+        }
+
+        private bool AreNeighboursDeadlocked(Cell cell, CellChainer chainer, List<Cell> openList)
+        {
+            PointInt2D[] neighbours = GridUtils.GetSurroundingPoints(cell.Index);
+            for (int i = 0; i < neighbours.Length; i++)
+            {
+                if (GridUtils.IsPointOutOfGridBounds(neighbours[i], Dimension.X, Dimension.Y))
+                    continue;
+                bool r = chainer.ChainNewCell(Cells[neighbours[i].X][neighbours[i].Y]);
+                if (r)
+                {
+                    if (chainer.ChainedCells.Count >= 3)
+                        return false; //NO DEADLOCK!
+                    openList.Add(Cells[neighbours[i].X][neighbours[i].Y]);
+                }
+            }
+            if (chainer.ChainedCells.Count == 1)
+                return true; //No good chain, but no deadlock yet
+            else
+            {
+                for (int i = openList.Count - 1; i >= 0; i--)
+                {
+                    if (AreNeighboursDeadlocked(openList[i], chainer, openList))
+                    {
+                        openList.RemoveAt(i);
+                    }
+                    else
+                    {
+                        return false; //NO DEADLOCK!!
+                    }
+                }
+                return true; //No good chain, but no deadlock yet
+
+            }
+
+
         }
     }
 }

@@ -26,12 +26,12 @@ namespace MilasQuest
 
         private void Start()
         {
-            _grid = new GridState(new GridConfig() { dimension = new PointInt2D() { X = 8, Y = 12 } });
+            _grid = new GridState(new GridConfig() { dimension = new PointInt2D() { X = 3, Y = 3 } });
             gridView.Init(_grid, new GridViewConfig() { cellSize = 1f, validInputRatio = 0.5f });
             _inputHandler = SolveInputHandler();
             _gridInputConversor = new GridInputConversor(_inputHandler, gridView, Camera.main);
             _gridInputConversor.Enable(true);
-            _cellChainer = new CellChainer(_grid.Dimension);
+            _cellChainer = new CellChainer(_grid.Dimension, new CELL_CHAIN_CONDITION[3] { CELL_CHAIN_CONDITION.IS_SAME_TYPE, CELL_CHAIN_CONDITION.IS_UNSELECTED, CELL_CHAIN_CONDITION.IS_NEIGHBOUR_TO_LAST});
             RegisterGridInputActions();
         }
 
@@ -69,8 +69,8 @@ namespace MilasQuest
         {
             if (_cellChainer.ChainedCells.Count >= CHAIN_MIN_CELL_COUNT) //this should be managed by a chainender condition
             {
-                //UnregisterGridInputActions();
-                //gridView.OnAllCellsUpdated += ResumeInput;
+                UnregisterGridInputActions();
+                gridView.OnAllCellsUpdated += ResumeInput;
                 _grid.RemoveCells(_cellChainer.ChainedCells);
             }
             _cellChainer.ChainEnded();
@@ -79,6 +79,9 @@ namespace MilasQuest
         private void ResumeInput()
         {
             gridView.OnAllCellsUpdated -= ResumeInput;
+            gridView.SetViewResponsiveness(false);
+            _grid.IsDeadlocked(_cellChainer);
+            gridView.SetViewResponsiveness(true);
             RegisterGridInputActions();
         }
 
@@ -97,87 +100,78 @@ namespace MilasQuest
         }
     }
 
-    public enum GRID_INPUT_RULES
+    public interface ICellChainCondition
     {
-        DIAGONALS_ALLOWED,
-        OUT_OF_BOUNDS_ALLOWED,
-        COUNT
+        CELL_EVALUATION_OUTPUT CheckCondition(List<Cell> chainedCells, Cell newCell);
+
+        CELL_CHAIN_CONDITION GetConditionType();
     }
 
-    public enum GRID_CELL_RULES
+    public class IsCellSameType : ICellChainCondition
     {
-        CELLS_FALL,
-        ALWAYS_SOLVABLE,
-        AUTO_SHUFFLE,
-        COUNT
-    }
+        public IsCellSameType() { }
 
-    public interface ICellCondition
-    {
-        CELL_EVALUATION_OUTPUT CheckCondition(Cell newCell);
-    }
-
-    public abstract class CellCondition : ICellCondition
-    {
-        protected CellChainer _cellChainer;
-        public CellCondition(CellChainer cellChainer)
+        public CELL_EVALUATION_OUTPUT CheckCondition(List<Cell> chainedCells, Cell newCell)
         {
-            _cellChainer = cellChainer;
-        }
-
-        public abstract CELL_EVALUATION_OUTPUT CheckCondition(Cell newCell);
-    }
-
-    public class IsCellSameType : CellCondition
-    {
-        public IsCellSameType(CellChainer cellChainer) : base(cellChainer) { }
-
-        public override CELL_EVALUATION_OUTPUT CheckCondition(Cell newCell)
-        {
-            if (_cellChainer.ChainedCells.Count == 0)
+            if (chainedCells.Count == 0)
                 return CELL_EVALUATION_OUTPUT.ADD;
 
-            if (_cellChainer.ChainedCells[_cellChainer.ChainedCells.Count - 1].CellType == newCell.CellType)
+            if (chainedCells[chainedCells.Count - 1].CellType == newCell.CellType)
                 return CELL_EVALUATION_OUTPUT.ADD;
             else
                 return CELL_EVALUATION_OUTPUT.DONT_ADD;
         }
+
+        public CELL_CHAIN_CONDITION GetConditionType()
+        {
+            return CELL_CHAIN_CONDITION.IS_SAME_TYPE;
+        }
     }
 
-    public class IsCellFree : CellCondition
+    public class IsCellUnselected : ICellChainCondition
     {
-        public IsCellFree(CellChainer cellChainer) : base(cellChainer) { }
+        public IsCellUnselected() { }
 
-        public override CELL_EVALUATION_OUTPUT CheckCondition(Cell newCell)
+        public CELL_EVALUATION_OUTPUT CheckCondition(List<Cell> chainedCells, Cell newCell)
         {
             if (!newCell.IsSelected)
                 return CELL_EVALUATION_OUTPUT.ADD;
             else
             {
-                if (_cellChainer.ChainedCells.Count == 1)
+                if (chainedCells.Count == 1)
                     return CELL_EVALUATION_OUTPUT.DONT_ADD;
 
-                if (_cellChainer.ChainedCells[_cellChainer.ChainedCells.Count - 2] == newCell)
+                if (chainedCells[chainedCells.Count - 2] == newCell)
                     return CELL_EVALUATION_OUTPUT.REMOVE_PREVIOUS;
                 else
                     return CELL_EVALUATION_OUTPUT.DONT_ADD;
             }
         }
+
+        public CELL_CHAIN_CONDITION GetConditionType()
+        {
+            return CELL_CHAIN_CONDITION.IS_UNSELECTED;
+        }
     }
 
-    public class IsCellNeighbourToLastCondition : CellCondition
+    public class IsCellNeighbourToLast : ICellChainCondition
     {
-        public IsCellNeighbourToLastCondition(CellChainer cellChainer) : base(cellChainer) { }
+        public IsCellNeighbourToLast() { }
 
-        public override CELL_EVALUATION_OUTPUT CheckCondition(Cell newCell)
+        public CELL_EVALUATION_OUTPUT CheckCondition(List<Cell> chainedCells, Cell newCell)
         {
-            if (_cellChainer.ChainedCells.Count == 0)
+            if (chainedCells.Count == 0)
                 return CELL_EVALUATION_OUTPUT.ADD;
 
-            if (IsNeighbour(_cellChainer.ChainedCells[_cellChainer.ChainedCells.Count - 1].Index, newCell.Index))
+            if (IsNeighbour(chainedCells[chainedCells.Count - 1].Index, newCell.Index))
                 return CELL_EVALUATION_OUTPUT.ADD;
             else
                 return CELL_EVALUATION_OUTPUT.DONT_ADD;
+        }
+
+        public CELL_CHAIN_CONDITION GetConditionType()
+        {
+            return CELL_CHAIN_CONDITION.IS_NEIGHBOUR_TO_LAST;
         }
 
         private bool IsNeighbour(PointInt2D previousPoint, PointInt2D newPoint)
@@ -192,34 +186,6 @@ namespace MilasQuest
         }
     }
 
-    public class CellConditionEvaluator
-    {
-        private List<ICellCondition> _conditions;
-
-        private CELL_EVALUATION_OUTPUT currentOutput;
-
-        public CellConditionEvaluator()
-        {
-            _conditions = new List<ICellCondition>();
-        }
-
-        public void AddNewCondition(ICellCondition cellcondition)
-        {
-            _conditions.Add(cellcondition);
-        }
-
-        public CELL_EVALUATION_OUTPUT EvaluateCell(Cell newCell)
-        {
-            for (int i = 0; i < _conditions.Count; i++)
-            {
-                currentOutput = _conditions[i].CheckCondition(newCell);
-                if (currentOutput != CELL_EVALUATION_OUTPUT.ADD)
-                    break;
-            }
-            return currentOutput;
-        }
-    }
-
     public enum CELL_EVALUATION_OUTPUT
     {
         ADD,
@@ -227,28 +193,84 @@ namespace MilasQuest
         REMOVE_PREVIOUS
     }
 
+    public enum CELL_CHAIN_CONDITION
+    {
+        IS_SAME_TYPE,
+        IS_UNSELECTED,
+        IS_NEIGHBOUR_TO_LAST
+    }
+
+    public static class ChainConditionFactory
+    {
+        public static ICellChainCondition GetCondition(CELL_CHAIN_CONDITION condition)
+        {
+            ICellChainCondition newCondition;
+            switch (condition)
+            {
+                case CELL_CHAIN_CONDITION.IS_SAME_TYPE:
+                    newCondition =  new IsCellSameType();
+                    break;
+                case CELL_CHAIN_CONDITION.IS_UNSELECTED:
+                    newCondition = new IsCellUnselected();
+                    break;
+                case CELL_CHAIN_CONDITION.IS_NEIGHBOUR_TO_LAST:
+                    newCondition = new IsCellNeighbourToLast();
+                    break;
+                default:
+                    newCondition = null;
+                    break;
+            }
+            return newCondition;
+        }
+    }
+
     public class CellChainer
     {
         public List<Cell> ChainedCells { get; private set; }
-        protected CellConditionEvaluator _cellEvaluator;
+        private List<ICellChainCondition> _chainConditions;
 
-        public CellChainer(PointInt2D gridDimensions)
+
+        public CellChainer(PointInt2D gridDimensions, CELL_CHAIN_CONDITION[] conditions)
         {
             ChainedCells = new List<Cell>();
-            _cellEvaluator = new CellConditionEvaluator();
-            _cellEvaluator.AddNewCondition(new IsCellSameType(this));
-            _cellEvaluator.AddNewCondition(new IsCellFree(this));
-            _cellEvaluator.AddNewCondition(new IsCellNeighbourToLastCondition(this));
+            _chainConditions = new List<ICellChainCondition>();
+
+            for (int i = 0; i < conditions.Length; i++)
+            {
+                _chainConditions.Add(ChainConditionFactory.GetCondition(conditions[i]));
+            }
         }
 
-        public void ChainNewCell(Cell newCell)
+        public void AddCondition(CELL_CHAIN_CONDITION newCondition)
         {
-            switch (_cellEvaluator.EvaluateCell(newCell))
+            for (int i = 0; i < _chainConditions.Count; i++)
+            {
+                if (_chainConditions[i].GetConditionType() == newCondition)
+                    return;
+            }
+            _chainConditions.Add(ChainConditionFactory.GetCondition(newCondition));
+        }
+
+        public void RemoveCondition(CELL_CHAIN_CONDITION newCondition)
+        {
+            for (int i = _chainConditions.Count - 1; i >= 0; i--)
+            {
+                if (_chainConditions[i].GetConditionType() == newCondition)
+                {
+                    _chainConditions.RemoveAt(i);
+                }
+            }
+        }
+
+        public bool ChainNewCell(Cell newCell)
+        {
+            CELL_EVALUATION_OUTPUT currentOutput = EvaluateCell(newCell);
+            switch (currentOutput)
             {
                 case CELL_EVALUATION_OUTPUT.ADD:
                     newCell.SetAsSelected();
                     ChainedCells.Add(newCell);
-                    break;
+                    return true;
                 case CELL_EVALUATION_OUTPUT.DONT_ADD:
                     break;
                 case CELL_EVALUATION_OUTPUT.REMOVE_PREVIOUS:
@@ -258,6 +280,7 @@ namespace MilasQuest
                 default:
                     break;
             }
+            return false;
         }
 
         public void ChainEnded()
@@ -268,6 +291,18 @@ namespace MilasQuest
                 ChainedCells[i].SetAsSelected(false);
             }
             ChainedCells.Clear();
+        }
+
+        private CELL_EVALUATION_OUTPUT EvaluateCell(Cell newCell)
+        {
+            CELL_EVALUATION_OUTPUT currentOutput = CELL_EVALUATION_OUTPUT.ADD;
+            for (int i = 0; i < _chainConditions.Count; i++)
+            {
+                currentOutput = _chainConditions[i].CheckCondition(ChainedCells, newCell);
+                if (currentOutput != CELL_EVALUATION_OUTPUT.ADD)
+                    break;
+            }
+            return currentOutput;
         }
     }
 
