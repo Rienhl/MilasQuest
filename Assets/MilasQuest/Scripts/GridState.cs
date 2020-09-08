@@ -29,6 +29,8 @@ namespace MilasQuest.Grids
         private PointInt2D aux;
         private GridConfig _config;
 
+        public Action<Cell> OnNewCellSpawned;
+
         public GridState(GridConfig config)
         {
             _config = config;
@@ -54,10 +56,7 @@ namespace MilasQuest.Grids
             for (int i = 0; i < chainedCells.Count; i++)
             {
                 RemoveCell(chainedCells[i]);
-                //Cells[chainedCells[i].Index.X][chainedCells[i].Index.Y].Remove();
-                //Cells[chainedCells[i].Index.X][chainedCells[i].Index.Y] = null;
             }
-            //UpdateGrid();
         }
 
         private void RemoveCell(Cell cell)
@@ -73,6 +72,7 @@ namespace MilasQuest.Grids
                 else
                 {
                     Cells[cell.Index.X][y] = new Cell(cell.Index.X, y);
+                    OnNewCellSpawned?.Invoke(Cells[cell.Index.X][y]);
                 }
             }
         }

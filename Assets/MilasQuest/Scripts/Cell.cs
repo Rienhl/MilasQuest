@@ -15,6 +15,7 @@ namespace MilasQuest.Grids
 
         public Cell(int x, int y)
         {
+            CellType = UnityEngine.Random.Range(0, 4);
             UpdateIndex(x, y);
         }
 

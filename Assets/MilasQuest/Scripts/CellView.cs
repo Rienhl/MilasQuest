@@ -23,7 +23,7 @@ namespace MilasQuest.Grids
             if (cellSprite == null)
                 cellSprite = GetComponent<SpriteRenderer>();
             cellSprite.sprite = properties.sprite;
-            cellSprite.color = cellViewProperties.rndmColors[UnityEngine.Random.Range(0, cellViewProperties.rndmColors.Length)];
+            cellSprite.color = cellViewProperties.rndmColors[cell.CellType];
             originColor = cellSprite.color;
 
             Cell.OnIndexUpdated += HandleOnIndexUpdated;

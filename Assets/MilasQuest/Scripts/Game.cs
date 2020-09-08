@@ -22,6 +22,8 @@ namespace MilasQuest
         private CellChainer _cellChainer;
         private GridState _grid;
 
+        private const int CHAIN_MIN_CELL_COUNT = 3;
+
         private void Start()
         {
             _grid = new GridState(new GridConfig() { dimension = new PointInt2D() { X = 8, Y = 12 } });
@@ -53,7 +55,8 @@ namespace MilasQuest
 
         private void HandleOnGridInputEnded(PointInt2D newPoint)
         {
-            _grid.RemoveCells(_cellChainer.ChainedCells);
+            if (_cellChainer.ChainedCells.Count >= CHAIN_MIN_CELL_COUNT) //this should be managed by a chainender condition
+                _grid.RemoveCells(_cellChainer.ChainedCells);
             _cellChainer.ChainEnded();
             
         }
@@ -102,6 +105,22 @@ namespace MilasQuest
         }
 
         public abstract CELL_EVALUATION_OUTPUT CheckCondition(Cell newCell);
+    }
+
+    public class IsCellSameType : CellCondition
+    {
+        public IsCellSameType(CellChainer cellChainer) : base(cellChainer) { }
+
+        public override CELL_EVALUATION_OUTPUT CheckCondition(Cell newCell)
+        {
+            if (_cellChainer.ChainedCells.Count == 0)
+                return CELL_EVALUATION_OUTPUT.ADD;
+
+            if (_cellChainer.ChainedCells[_cellChainer.ChainedCells.Count - 1].CellType == newCell.CellType)
+                return CELL_EVALUATION_OUTPUT.ADD;
+            else
+                return CELL_EVALUATION_OUTPUT.DONT_ADD;
+        }
     }
 
     public class IsCellFree : CellCondition
@@ -196,6 +215,7 @@ namespace MilasQuest
         {
             ChainedCells = new List<Cell>();
             _cellEvaluator = new CellConditionEvaluator();
+            _cellEvaluator.AddNewCondition(new IsCellSameType(this));
             _cellEvaluator.AddNewCondition(new IsCellFree(this));
             _cellEvaluator.AddNewCondition(new IsCellNeighbourToLastCondition(this));
         }
@@ -223,6 +243,10 @@ namespace MilasQuest
         public void ChainEnded()
         {
             Debug.Log("Chain count " + ChainedCells.Count);
+            for (int i = 0; i < ChainedCells.Count; i++)
+            {
+                ChainedCells[i].SetAsSelected(false);
+            }
             ChainedCells.Clear();
         }
     }

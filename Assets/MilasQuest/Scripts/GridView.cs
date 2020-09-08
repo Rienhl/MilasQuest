@@ -32,7 +32,9 @@ namespace MilasQuest.Grids
             ActiveInputRadius = CellHalfSize * _gridConfig.validInputRatio;
             GridBounds = new Bounds(Vector3.zero, new Vector3(grid.Dimension.X * gridConfig.cellSize, grid.Dimension.Y * gridConfig.cellSize));
             PlaceCells();
+            Grid.OnNewCellSpawned += HandleOnNewCellAdded;
         }
+
 
         private void PlaceCells()
         {
@@ -41,15 +43,25 @@ namespace MilasQuest.Grids
             {
                 for (int y = 0; y < Grid.Dimension.Y; y++)
                 {
-                    CellView cellView = new GameObject().AddComponent<CellView>();
-                    cellView.gameObject.AddComponent<SpriteRenderer>();
-                    cellView.Init(Grid.Cells[x][y], cellProps);
-                    cellView.gameObject.name = "Cell " + cellView.Cell.Index.ToString();
-                    cellView.transform.localPosition = GetLocalPositionFromIndex(Grid.Cells[x][y].Index);
-                    cellView.OnCellIndexUpdated += HandleOnCellIndexUpdated;
-                    _cellViews[x + y * Grid.Dimension.X] = cellView;
+                    SpawnNewCell(Grid.Cells[x][y]);
                 }
             }
+        }
+        private void HandleOnNewCellAdded(Cell cell)
+        {
+            SpawnNewCell(cell);
+        }
+
+        private void SpawnNewCell(Cell cell)
+        {
+            CellView cellView = new GameObject().AddComponent<CellView>();
+            cellView.gameObject.AddComponent<SpriteRenderer>();
+            cellView.Init(cell, cellProps);
+            cellView.gameObject.name = "Cell " + cellView.Cell.Index.ToString();
+            cellView.transform.localPosition = GetLocalPositionFromIndex(new PointInt2D() { X = cell.Index.X, Y = Grid.Dimension.Y + 1 });
+            cellView.OnCellIndexUpdated += HandleOnCellIndexUpdated;
+            _cellViews[cell.Index.X + cell.Index.Y * Grid.Dimension.X] = cellView;
+            HandleOnCellIndexUpdated(cellView);
         }
 
         private void HandleOnCellIndexUpdated(CellView cellView)
