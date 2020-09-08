@@ -1,22 +1,10 @@
-﻿using MilasQuest.InputManagement;
+﻿using MilasQuest.Grids.LinkableRules;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.Design;
 using UnityEngine;
-using UnityEngine.Assertions.Must;
 
 namespace MilasQuest.Grids
 {
-    /// <summary>
-    /// Contains all the necessary information for setting up a grid, independent from it's visuals
-    /// </summary>
-    [System.Serializable]
-    public class GridConfig
-    {
-        public PointInt2D dimension;
-    }
-
-
     /// <summary>
     /// Think similar to MVC, this class contains the model part of the grid, where it's current state is stored
     /// independent from cell size, sprites, grid position in the world, etc...
@@ -76,13 +64,13 @@ namespace MilasQuest.Grids
             OnNewCellSpawned?.Invoke(Cells[cell.Index.X][Dimension.Y-1]);
         }
 
-
-        public bool IsDeadlocked(CellChainer chainer)
+        #region Deadlock
+        public bool IsDeadlocked(CellLinker chainer)
         {
             List<Cell> openList = new List<Cell>();
             List<Cell> closedList = new List<Cell>();
 
-            chainer.RemoveCondition(CELL_CHAIN_CONDITION.IS_NEIGHBOUR_TO_LAST);
+            chainer.RemoveRule(CELL_LINKING_RULE.IS_NEIGHBOUR_TO_LAST);
 
             for (int x = 0; x < Dimension.X; x++)
             {
@@ -91,45 +79,45 @@ namespace MilasQuest.Grids
                     Cell cellToCheck = Cells[x][y];
                     if (closedList.Contains(cellToCheck))
                         continue;
-                    if (chainer.ChainedCells.Contains(cellToCheck))
+                    if (chainer.LinkedCells.Contains(cellToCheck))
                         continue;
                     openList.Clear();
-                    chainer.ChainNewCell(cellToCheck);
+                    chainer.AddCell(cellToCheck);
                     if (AreNeighboursDeadlocked(cellToCheck, chainer, openList))
                     {
-                        closedList.AddRange(chainer.ChainedCells);
-                        chainer.ChainEnded();
+                        closedList.AddRange(chainer.LinkedCells);
+                        chainer.LinkFinalized();
                     }
                     else
                     {
-                        chainer.AddCondition(CELL_CHAIN_CONDITION.IS_NEIGHBOUR_TO_LAST);
-                        chainer.ChainEnded();
+                        chainer.AddRule(CELL_LINKING_RULE.IS_NEIGHBOUR_TO_LAST);
+                        chainer.LinkFinalized();
                         return false;
                     }
                 }
             }
-            chainer.AddCondition(CELL_CHAIN_CONDITION.IS_NEIGHBOUR_TO_LAST);
-            chainer.ChainEnded();
+            chainer.AddRule(CELL_LINKING_RULE.IS_NEIGHBOUR_TO_LAST);
+            chainer.LinkFinalized();
             Debug.Log("DEADLOCK!");
             return true;
         }
 
-        private bool AreNeighboursDeadlocked(Cell cell, CellChainer chainer, List<Cell> openList)
+        private bool AreNeighboursDeadlocked(Cell cell, CellLinker chainer, List<Cell> openList)
         {
             PointInt2D[] neighbours = GridUtils.GetSurroundingPoints(cell.Index);
             for (int i = 0; i < neighbours.Length; i++)
             {
                 if (GridUtils.IsPointOutOfGridBounds(neighbours[i], Dimension.X, Dimension.Y))
                     continue;
-                bool r = chainer.ChainNewCell(Cells[neighbours[i].X][neighbours[i].Y]);
+                bool r = chainer.AddCell(Cells[neighbours[i].X][neighbours[i].Y]);
                 if (r)
                 {
-                    if (chainer.ChainedCells.Count >= 3)
+                    if (chainer.LinkedCells.Count >= 3)
                         return false; //NO DEADLOCK!
                     openList.Add(Cells[neighbours[i].X][neighbours[i].Y]);
                 }
             }
-            if (chainer.ChainedCells.Count == 1)
+            if (chainer.LinkedCells.Count == 1)
                 return true; //No good chain, but no deadlock yet
             else
             {
@@ -150,5 +138,6 @@ namespace MilasQuest.Grids
 
 
         }
+        #endregion
     }
 }

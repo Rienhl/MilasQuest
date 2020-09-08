@@ -1,8 +1,6 @@
 ﻿using System;
 using UnityEngine;
 using DG.Tweening;
-using UnityEngine.Rendering.UI;
-using TMPro;
 
 namespace MilasQuest.Grids
 {

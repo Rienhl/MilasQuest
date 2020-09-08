@@ -1,7 +1,6 @@
-﻿using MilasQuest.Grids;
-using UnityEngine;
+﻿using UnityEngine;
 
-namespace MilasQuest.InputManagement
+namespace MilasQuest.Grids
 {
     public static class GridUtils
     {
