@@ -29,6 +29,14 @@ namespace MilasQuest
             RegisterGridInputActions();
         }
 
+        private void Update()
+        {
+            if (Input.GetKeyDown(KeyCode.Space))
+            {
+                _grid.ShuffleBoard();
+            }
+        }
+
         private void RegisterGridInputActions()
         {
             _gridInputConversor.OnGridInputStarted += HandleOnGridInputStarted;
@@ -74,8 +82,10 @@ namespace MilasQuest
         {
             gridView.OnAllCellsUpdated -= ResumeInput;
             gridView.SetViewResponsiveness(false);
-            _grid.IsDeadlocked(_cellLinker);
+            bool shuffle = _grid.IsDeadlocked(_cellLinker);
             gridView.SetViewResponsiveness(true);
+            if (shuffle)
+                _grid.ShuffleBoard();
             RegisterGridInputActions();
         }
 

@@ -55,13 +55,15 @@ namespace MilasQuest.Grids
 
         private void HandleOnCellSelected()
         {
-            Debug.Log("selected");
+            transform.localScale = Vector3.one;
             cellSprite.DOFade(1, 0.3f);
-            transform.DOShakeScale(0.5f, 0.7f);
+            transform.DOShakeScale(0.5f, 0.5f);
         }
 
         private void HandleOnCellUnselected()
         {
+            transform.DOKill();
+            transform.localScale = Vector3.one;
             cellSprite.DOFade(originColor.a, 0.3f);
         }
 

@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
 
 namespace MilasQuest.Grids
 {
@@ -47,6 +48,22 @@ namespace MilasQuest.Grids
             surroundingPoints[6] = new PointInt2D { X = origin.X, Y = origin.Y - 1};
             surroundingPoints[7] = new PointInt2D { X = origin.X + 1, Y = origin.Y - 1};
             return surroundingPoints;
+        }
+    }
+
+    public static class ExtensionMethods
+    {
+        public static void Shuffle<T>(this List<T> ts)
+        {
+            var count = ts.Count;
+            var last = count - 1;
+            for (var i = 0; i < last; ++i)
+            {
+                var r = UnityEngine.Random.Range(i, count);
+                var tmp = ts[i];
+                ts[i] = ts[r];
+                ts[r] = tmp;
+            }
         }
     }
 }

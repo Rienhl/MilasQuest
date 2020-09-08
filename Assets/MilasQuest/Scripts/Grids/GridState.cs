@@ -60,8 +60,8 @@ namespace MilasQuest.Grids
                 Cells[cell.Index.X][y - 1] = Cells[cell.Index.X][y];
                 Cells[cell.Index.X][y - 1].UpdateIndex(cell.Index.X, y - 1);
             }
-            Cells[cell.Index.X][Dimension.Y-1] = new Cell(cell.Index.X, Dimension.Y - 1);
-            OnNewCellSpawned?.Invoke(Cells[cell.Index.X][Dimension.Y-1]);
+            Cells[cell.Index.X][Dimension.Y - 1] = new Cell(cell.Index.X, Dimension.Y - 1);
+            OnNewCellSpawned?.Invoke(Cells[cell.Index.X][Dimension.Y - 1]);
         }
 
         #region Deadlock
@@ -135,9 +135,35 @@ namespace MilasQuest.Grids
                 return true; //No good chain, but no deadlock yet
 
             }
-
-
         }
         #endregion
+
+        public void ShuffleBoard()
+        {
+            List<PointInt2D> allIndices = new List<PointInt2D>();
+            for (int x = 0; x < Dimension.X; x++)
+            {
+                for (int y = 0; y < Dimension.Y; y++)
+                {
+                    allIndices.Add(new PointInt2D() { X = x, Y = y });
+                }
+            }
+            allIndices.Shuffle();
+            for (int i = allIndices.Count - 1; i >= 1; i-=2)
+            {
+                SwapCells(allIndices[i], allIndices[i - 1]);
+            }
+            OnGridFinishedUpdating?.Invoke();
+        }
+
+        private void SwapCells(PointInt2D a, PointInt2D b)
+        {
+            Cells[a.X][a.Y].UpdateIndex(b.X, b.Y);
+            Cells[b.X][b.Y].UpdateIndex(a.X, a.Y);
+
+            Cell temp = Cells[a.X][a.Y];
+            Cells[a.X][a.Y] = Cells[b.X][b.Y];
+            Cells[b.X][b.Y] = temp;
+        }
     }
 }
