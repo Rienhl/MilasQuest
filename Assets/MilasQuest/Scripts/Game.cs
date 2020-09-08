@@ -32,11 +32,23 @@ namespace MilasQuest
             _gridInputConversor = new GridInputConversor(_inputHandler, gridView, Camera.main);
             _gridInputConversor.Enable(true);
             _cellChainer = new CellChainer(_grid.Dimension);
+            RegisterGridInputActions();
+        }
 
+        private void RegisterGridInputActions()
+        {
             _gridInputConversor.OnGridInputStarted += HandleOnGridInputStarted;
             _gridInputConversor.OnGridInputUpdated += HandleOnGridInputUpdated;
             _gridInputConversor.OnGridInputEnded += HandleOnGridInputEnded;
             _gridInputConversor.OnGridInputCancelled += HandleOnGridInputCancelled;
+        }
+
+        private void UnregisterGridInputActions()
+        {
+            _gridInputConversor.OnGridInputStarted -= HandleOnGridInputStarted;
+            _gridInputConversor.OnGridInputUpdated -= HandleOnGridInputUpdated;
+            _gridInputConversor.OnGridInputEnded -= HandleOnGridInputEnded;
+            _gridInputConversor.OnGridInputCancelled -= HandleOnGridInputCancelled;
         }
 
         private void HandleOnGridInputStarted(PointInt2D newPoint)
@@ -56,9 +68,18 @@ namespace MilasQuest
         private void HandleOnGridInputEnded(PointInt2D newPoint)
         {
             if (_cellChainer.ChainedCells.Count >= CHAIN_MIN_CELL_COUNT) //this should be managed by a chainender condition
+            {
+                //UnregisterGridInputActions();
+                //gridView.OnAllCellsUpdated += ResumeInput;
                 _grid.RemoveCells(_cellChainer.ChainedCells);
+            }
             _cellChainer.ChainEnded();
-            
+        }
+
+        private void ResumeInput()
+        {
+            gridView.OnAllCellsUpdated -= ResumeInput;
+            RegisterGridInputActions();
         }
 
         private void HandleOnGridInputCancelled()
@@ -208,8 +229,8 @@ namespace MilasQuest
 
     public class CellChainer
     {
-        public List<Cell> ChainedCells;
-        private CellConditionEvaluator _cellEvaluator;
+        public List<Cell> ChainedCells { get; private set; }
+        protected CellConditionEvaluator _cellEvaluator;
 
         public CellChainer(PointInt2D gridDimensions)
         {
@@ -227,7 +248,6 @@ namespace MilasQuest
                 case CELL_EVALUATION_OUTPUT.ADD:
                     newCell.SetAsSelected();
                     ChainedCells.Add(newCell);
-                    Debug.Log($"Added Cell {newCell.Index}");
                     break;
                 case CELL_EVALUATION_OUTPUT.DONT_ADD:
                     break;

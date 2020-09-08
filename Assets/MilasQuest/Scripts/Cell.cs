@@ -11,7 +11,6 @@ namespace MilasQuest.Grids
         public Action OnIndexUpdated;
         public Action OnSelected;
         public Action OnUnselected;
-        public Action OnRemoved;
 
         public Cell(int x, int y)
         {
@@ -32,11 +31,6 @@ namespace MilasQuest.Grids
                 OnSelected?.Invoke();
             else
                 OnUnselected?.Invoke();
-        }
-
-        internal void Remove()
-        {
-            OnRemoved?.Invoke();
         }
     }
 }

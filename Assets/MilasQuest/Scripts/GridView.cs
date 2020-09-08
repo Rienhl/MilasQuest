@@ -1,5 +1,6 @@
 ﻿using DG.Tweening;
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace MilasQuest.Grids
@@ -19,8 +20,10 @@ namespace MilasQuest.Grids
         public float CellHalfSize { get; private set; }
         public float ActiveInputRadius { get; private set; }
         
-        private CellView[] _cellViews;
+        private List<CellView> _cellViews;
         private GridViewConfig _gridConfig;
+
+        public Action OnAllCellsUpdated;
 
         public void Init(GridState grid, GridViewConfig gridConfig)
         {
@@ -33,26 +36,23 @@ namespace MilasQuest.Grids
             GridBounds = new Bounds(Vector3.zero, new Vector3(grid.Dimension.X * gridConfig.cellSize, grid.Dimension.Y * gridConfig.cellSize));
             PlaceCells();
             Grid.OnNewCellSpawned += HandleOnNewCellAdded;
+            Grid.OnCellRemoved += HandleOnCellRemoved;
+            Grid.OnGridFinishedUpdating += HandleOnGridFinishedUpdating;
         }
-
 
         private void PlaceCells()
         {
-            _cellViews = new CellView[Grid.Dimension.X * Grid.Dimension.Y]; //this currently only supports rectangle grids, for jagged grids we need another system
+            _cellViews = new List<CellView>();
             for (int x = 0; x < Grid.Dimension.X; x++)
             {
                 for (int y = 0; y < Grid.Dimension.Y; y++)
                 {
-                    SpawnNewCell(Grid.Cells[x][y]);
+                    SpawnNewCellView(Grid.Cells[x][y]).PlayMovement();
                 }
             }
         }
-        private void HandleOnNewCellAdded(Cell cell)
-        {
-            SpawnNewCell(cell);
-        }
 
-        private void SpawnNewCell(Cell cell)
+        private CellView SpawnNewCellView(Cell cell)
         {
             CellView cellView = new GameObject().AddComponent<CellView>();
             cellView.gameObject.AddComponent<SpriteRenderer>();
@@ -60,13 +60,40 @@ namespace MilasQuest.Grids
             cellView.gameObject.name = "Cell " + cellView.Cell.Index.ToString();
             cellView.transform.localPosition = GetLocalPositionFromIndex(new PointInt2D() { X = cell.Index.X, Y = Grid.Dimension.Y + 1 });
             cellView.OnCellIndexUpdated += HandleOnCellIndexUpdated;
-            _cellViews[cell.Index.X + cell.Index.Y * Grid.Dimension.X] = cellView;
+            _cellViews.Add(cellView);
             HandleOnCellIndexUpdated(cellView);
+            return cellView;
+        }
+
+        private void HandleOnNewCellAdded(Cell cell)
+        {
+            SpawnNewCellView(cell);
+        }
+
+        private void HandleOnCellRemoved(Cell cell)
+        {
+            for (int i = _cellViews.Count - 1; i >= 0; i--)
+            {
+                if (_cellViews[i].Cell.Index == cell.Index)
+                {
+                    _cellViews[i].DestroyCell();
+                    _cellViews.RemoveAt(i);
+                }
+            }
+        }
+
+        private void HandleOnGridFinishedUpdating()
+        {
+            Debug.Log("Finished Updating Cell Views: " + _cellViews.Count);
+            for (int i = 0; i < _cellViews.Count; i++)
+            {
+                _cellViews[i].PlayMovement();
+            }
         }
 
         private void HandleOnCellIndexUpdated(CellView cellView)
         {
-            cellView.transform.DOMove(GetLocalPositionFromIndex(cellView.Cell.Index), 0.5f).SetEase(Ease.OutBounce);
+            cellView.CueMovement(GetLocalPositionFromIndex(cellView.Cell.Index));
         }
 
         private Vector3 GetLocalPositionFromIndex(PointInt2D index)

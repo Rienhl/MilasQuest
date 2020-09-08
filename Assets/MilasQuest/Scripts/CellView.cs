@@ -1,6 +1,7 @@
 ﻿using System;
 using UnityEngine;
 using DG.Tweening;
+using UnityEngine.Rendering.UI;
 
 namespace MilasQuest.Grids
 {
@@ -12,6 +13,8 @@ namespace MilasQuest.Grids
 
         private CellViewProperties cellViewProperties;
         private Color originColor;
+        private Vector3 _targetPos;
+        private bool _isMovementCueded;
 
         public Action<CellView> OnCellIndexUpdated;
 
@@ -29,7 +32,6 @@ namespace MilasQuest.Grids
             Cell.OnIndexUpdated += HandleOnIndexUpdated;
             Cell.OnSelected += HandleOnCellSelected;
             Cell.OnUnselected += HandleOnCellUnselected;
-            Cell.OnRemoved += HandleOnRemoved;
         }
 
         private void HandleOnCellUnselected()
@@ -45,21 +47,33 @@ namespace MilasQuest.Grids
 
         public void DestroyCell()
         {
+            this.transform.DOKill();
             Cell.OnIndexUpdated -= HandleOnIndexUpdated;
             Cell.OnSelected -= HandleOnCellSelected;
             Cell.OnUnselected -= HandleOnCellUnselected;
-            Cell.OnRemoved -= HandleOnRemoved;
-        }
-
-        private void HandleOnRemoved()
-        {
-            DestroyCell();
-            Destroy(this.gameObject);
+            this.transform.DOScale(0, 0.3f).SetEase(Ease.OutCirc);
+            //repool
         }
 
         private void HandleOnIndexUpdated()
         {
             OnCellIndexUpdated?.Invoke(this);
+        }
+
+        public void CueMovement(Vector3 newPos)
+        {
+            _targetPos = newPos;
+            _isMovementCueded = true;
+        }
+
+        public void PlayMovement()
+        {
+            if (_isMovementCueded)
+            {
+                Debug.Log(Cell.Index);
+                this.gameObject.transform.DOMove(_targetPos, 0.5f).SetEase(Ease.OutBounce).OnComplete(() => _isMovementCueded = false);
+
+            }
         }
     }
 }
