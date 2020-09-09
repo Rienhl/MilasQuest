@@ -23,7 +23,7 @@ namespace MilasQuest.Grids
         private GridViewConfig _gridConfig;
 
         private int _movingCellsCount = 0;
-        public Action OnAllCellsUpdated;
+        public Action OnGridViewUpdated;
 
         public void Init(GridState grid, GridViewConfig gridConfig)
         {
@@ -37,7 +37,7 @@ namespace MilasQuest.Grids
             PlaceCells();
             Grid.OnNewCellSpawned += HandleOnNewCellAdded;
             Grid.OnCellRemoved += HandleOnCellRemoved;
-            Grid.OnGridFinishedUpdating += HandleOnGridFinishedUpdating;
+            Grid.OnFinishedUpdatingGrid += HandleOnGridUpdated;
         }
 
         public void SetViewResponsiveness(bool enable)
@@ -100,7 +100,7 @@ namespace MilasQuest.Grids
             }
         }
 
-        private void HandleOnGridFinishedUpdating()
+        private void HandleOnGridUpdated()
         {
             _movingCellsCount = 0;
             for (int i = 0; i < _cellViews.Count; i++)
@@ -117,7 +117,7 @@ namespace MilasQuest.Grids
         {
             _movingCellsCount--;
             if (_movingCellsCount <= 0)
-                OnAllCellsUpdated?.Invoke();
+                OnGridViewUpdated?.Invoke();
         }
 
         private void HandleOnCellIndexUpdated(CellView cellView)

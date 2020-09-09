@@ -62,7 +62,7 @@ namespace MilasQuest.Grids
             return false;
         }
 
-        public void LinkFinalized()
+        public void ClearLink()
         {
             for (int i = 0; i < LinkedCells.Count; i++)
             {

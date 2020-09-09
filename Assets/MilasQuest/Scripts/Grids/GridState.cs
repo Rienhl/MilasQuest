@@ -18,16 +18,49 @@ namespace MilasQuest.Grids
         public Cell[][] Cells { get; private set; }
 
         private GridConfig _config;
+        private CellLinker _cellLinker;
+
+        private const int CHAIN_MIN_CELL_COUNT = 3;
 
         public Action<Cell> OnNewCellSpawned;
         public Action<Cell> OnCellRemoved;
-        public Action OnGridFinishedUpdating;
+        public Action OnStartedUpdatingGrid;
+        public Action OnFinishedUpdatingGrid;
 
         public GridState(GridConfig config)
         {
             _config = config;
             this.Dimension = config.dimension;
             GenerateGrid();
+            _cellLinker = new CellLinker(Dimension, new CELL_LINKING_RULE[3] { CELL_LINKING_RULE.IS_SAME_TYPE, CELL_LINKING_RULE.IS_UNSELECTED, CELL_LINKING_RULE.IS_NEIGHBOUR_TO_LAST });
+        }
+
+        public bool AddCellAtPoint(PointInt2D point)
+        {
+            if (GridUtils.IsPointOutOfGridBounds(point, Dimension.X, Dimension.Y))
+                return false;
+            return _cellLinker.AddCell(Cells[point.X][point.Y]);
+        }
+
+        public bool ProcessCurrentLink()
+        {
+            if (_cellLinker.LinkedCells.Count >= CHAIN_MIN_CELL_COUNT) //this should be managed by a chainender condition
+            {
+                RemoveCells(_cellLinker.LinkedCells);
+                _cellLinker.ClearLink();
+                return true;
+            }
+            _cellLinker.ClearLink();
+            return false;
+        }
+
+        public void CheckForDeadlock()
+        {
+            while(IsGridDeadlocked())
+            {
+                ShuffleBoard();
+            }
+            OnFinishedUpdatingGrid?.Invoke();
         }
 
         private void GenerateGrid()
@@ -43,13 +76,14 @@ namespace MilasQuest.Grids
             }
         }
 
-        internal void RemoveCells(List<Cell> chainedCells)
+        private void RemoveCells(List<Cell> chainedCells)
         {
+            OnStartedUpdatingGrid?.Invoke();
             for (int i = 0; i < chainedCells.Count; i++)
             {
                 RemoveCell(chainedCells[i]);
             }
-            OnGridFinishedUpdating?.Invoke();
+            OnFinishedUpdatingGrid?.Invoke();
         }
 
         private void RemoveCell(Cell cell)
@@ -65,12 +99,12 @@ namespace MilasQuest.Grids
         }
 
         #region Deadlock
-        public bool IsDeadlocked(CellLinker chainer)
+        private bool IsGridDeadlocked()
         {
             List<Cell> openList = new List<Cell>();
             List<Cell> closedList = new List<Cell>();
 
-            chainer.RemoveRule(CELL_LINKING_RULE.IS_NEIGHBOUR_TO_LAST);
+            _cellLinker.RemoveRule(CELL_LINKING_RULE.IS_NEIGHBOUR_TO_LAST);
 
             for (int x = 0; x < Dimension.X; x++)
             {
@@ -79,51 +113,51 @@ namespace MilasQuest.Grids
                     Cell cellToCheck = Cells[x][y];
                     if (closedList.Contains(cellToCheck))
                         continue;
-                    if (chainer.LinkedCells.Contains(cellToCheck))
+                    if (_cellLinker.LinkedCells.Contains(cellToCheck))
                         continue;
                     openList.Clear();
-                    chainer.AddCell(cellToCheck);
-                    if (AreNeighboursDeadlocked(cellToCheck, chainer, openList))
+                    _cellLinker.AddCell(cellToCheck);
+                    if (AreNeighboursDeadlocked(cellToCheck, openList))
                     {
-                        closedList.AddRange(chainer.LinkedCells);
-                        chainer.LinkFinalized();
+                        closedList.AddRange(_cellLinker.LinkedCells);
+                        _cellLinker.ClearLink();
                     }
                     else
                     {
-                        chainer.AddRule(CELL_LINKING_RULE.IS_NEIGHBOUR_TO_LAST);
-                        chainer.LinkFinalized();
+                        _cellLinker.AddRule(CELL_LINKING_RULE.IS_NEIGHBOUR_TO_LAST);
+                        _cellLinker.ClearLink();
                         return false;
                     }
                 }
             }
-            chainer.AddRule(CELL_LINKING_RULE.IS_NEIGHBOUR_TO_LAST);
-            chainer.LinkFinalized();
+            _cellLinker.AddRule(CELL_LINKING_RULE.IS_NEIGHBOUR_TO_LAST);
+            _cellLinker.ClearLink();
             Debug.Log("DEADLOCK!");
             return true;
         }
 
-        private bool AreNeighboursDeadlocked(Cell cell, CellLinker chainer, List<Cell> openList)
+        private bool AreNeighboursDeadlocked(Cell cell, List<Cell> openList)
         {
             PointInt2D[] neighbours = GridUtils.GetSurroundingPoints(cell.Index);
             for (int i = 0; i < neighbours.Length; i++)
             {
                 if (GridUtils.IsPointOutOfGridBounds(neighbours[i], Dimension.X, Dimension.Y))
                     continue;
-                bool r = chainer.AddCell(Cells[neighbours[i].X][neighbours[i].Y]);
+                bool r = _cellLinker.AddCell(Cells[neighbours[i].X][neighbours[i].Y]);
                 if (r)
                 {
-                    if (chainer.LinkedCells.Count >= 3)
+                    if (_cellLinker.LinkedCells.Count >= 3)
                         return false; //NO DEADLOCK!
                     openList.Add(Cells[neighbours[i].X][neighbours[i].Y]);
                 }
             }
-            if (chainer.LinkedCells.Count == 1)
+            if (_cellLinker.LinkedCells.Count == 1)
                 return true; //No good chain, but no deadlock yet
             else
             {
                 for (int i = openList.Count - 1; i >= 0; i--)
                 {
-                    if (AreNeighboursDeadlocked(openList[i], chainer, openList))
+                    if (AreNeighboursDeadlocked(openList[i], openList))
                     {
                         openList.RemoveAt(i);
                     }
@@ -153,7 +187,6 @@ namespace MilasQuest.Grids
             {
                 SwapCells(allIndices[i], allIndices[i - 1]);
             }
-            OnGridFinishedUpdating?.Invoke();
         }
 
         private void SwapCells(PointInt2D a, PointInt2D b)
