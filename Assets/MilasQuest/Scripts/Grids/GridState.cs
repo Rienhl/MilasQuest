@@ -23,10 +23,10 @@ namespace MilasQuest.Grids
 
         private const int CHAIN_MIN_CELL_COUNT = 3;
 
-        public Action<Cell> OnNewCellSpawned;
+        public Action<Cell> OnCellAdded;
         public Action<Cell> OnCellRemoved;
         public Action OnStartedUpdatingGrid;
-        public Action OnFinishedUpdatingGrid;
+        public Action OnGridUpdated;
 
         public GridState(GridConfigurationData gridconfigurationData)
         {
@@ -61,7 +61,7 @@ namespace MilasQuest.Grids
             {
                 ShuffleBoard();
             }
-            OnFinishedUpdatingGrid?.Invoke();
+            OnGridUpdated?.Invoke();
         }
 
         private void GenerateGrid()
@@ -84,7 +84,7 @@ namespace MilasQuest.Grids
             {
                 RemoveCell(chainedCells[i]);
             }
-            OnFinishedUpdatingGrid?.Invoke();
+            OnGridUpdated?.Invoke();
         }
 
         private void RemoveCell(Cell cell)
@@ -96,7 +96,7 @@ namespace MilasQuest.Grids
                 Cells[cell.Index.X][y - 1].UpdateIndex(cell.Index.X, y - 1);
             }
             Cells[cell.Index.X][Dimension.Y - 1] = new Cell(cell.Index.X, Dimension.Y - 1, _gridConfigurationData.cellTypes[UnityEngine.Random.Range(0, _gridConfigurationData.cellTypes.Length)]);
-            OnNewCellSpawned?.Invoke(Cells[cell.Index.X][Dimension.Y - 1]);
+            OnCellAdded?.Invoke(Cells[cell.Index.X][Dimension.Y - 1]);
         }
 
         #region Deadlock

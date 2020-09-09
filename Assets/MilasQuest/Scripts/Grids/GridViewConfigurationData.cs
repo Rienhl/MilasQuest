@@ -12,6 +12,7 @@ namespace MilasQuest.Grids.GameData
     {
         public float cellSize;
         public float validInputRatio;
+        public float cellDestructionDelay = 0.2f;
         public PoolData cellPoolData;
     }
 }

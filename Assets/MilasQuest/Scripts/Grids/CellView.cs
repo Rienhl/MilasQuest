@@ -66,11 +66,12 @@ namespace MilasQuest.Grids
             cellSprite.DOFade(originColor.a, 0.3f);
         }
 
-        public void DestroyCell()
+        public void DestroyCell(float delay = 0, Action OnDestroyed = null)
         {
             this.transform.DOKill();
             UnregisterViewListeners();
-            this.transform.DOScale(0, 0.3f).SetEase(Ease.OutCirc).OnComplete(() => GetComponent<PoolObject>().Despawn());
+            Debug.Log(delay);
+            this.transform.DOScale(0, 0.3f).SetEase(Ease.InBack).SetDelay(delay).OnComplete(() => { OnDestroyed?.Invoke(); GetComponent<PoolObject>().Despawn(); });
         }
 
         private void HandleOnIndexUpdated()

@@ -2,11 +2,17 @@
 using MilasQuest.Grids;
 using MilasQuest.InputManagement;
 using MilasQuest.Pools;
+using MilasQuest.Stats;
 using System;
 using UnityEngine;
 
 namespace MilasQuest
 {
+    public class ScoreTracker
+    {
+
+    }
+
     public class Game : MonoBehaviour
     {
         [SerializeField]
@@ -20,7 +26,7 @@ namespace MilasQuest
         private InputHandler _inputHandler;
         private GridInputConversor _gridInputConversor;
         private GridState _grid;
-
+        private LevelStats _levelStats;
 
         private void Start()
         {
@@ -35,6 +41,8 @@ namespace MilasQuest
             _gridInputConversor = new GridInputConversor(_inputHandler, gridView, Camera.main);
             _gridInputConversor.Enable(true);
             RegisterGridInputActions();
+            _levelStats = new LevelStats();
+            _levelStats.OnStatUpdatedListeners[STAT_TYPE.TOTAL_SCORE].Add((Stat s) => Debug.Log(s.GetCurrentValue()));
         }
 
         private void Update()
@@ -73,6 +81,7 @@ namespace MilasQuest
 
         private void HandleOnGridInputEnded(PointInt2D newPoint)
         {
+            _levelStats.ProcessStatModifier(new StatModifier() { operation = ARITHMETIC_OPERATOR.ADD, targetStat = STAT_TYPE.TOTAL_SCORE, value = 5 });
             _grid.ProcessCurrentLink();
         }
 
