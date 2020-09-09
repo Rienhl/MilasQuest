@@ -14,5 +14,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   cellSize: 1
   validInputRatio: 0.5
-  cellDestructionDelay: 0.2
+  cellDestructionDelay: 0.15
   cellPoolData: {fileID: 11400000, guid: 4d86de7b328331646b7d13b11e768141, type: 2}

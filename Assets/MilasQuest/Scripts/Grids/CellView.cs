@@ -70,7 +70,6 @@ namespace MilasQuest.Grids
         {
             this.transform.DOKill();
             UnregisterViewListeners();
-            Debug.Log(delay);
             this.transform.DOScale(0, 0.3f).SetEase(Ease.InBack).SetDelay(delay).OnComplete(() => { OnDestroyed?.Invoke(); GetComponent<PoolObject>().Despawn(); });
         }
 

@@ -90,6 +90,14 @@ namespace MilasQuest.Stats
         public float value;
     }
 
+    [System.Serializable]
+    public class EndLevelData
+    {
+        public EndLevelConditionData[] successConditions;
+        public EndLevelConditionData[] failureConditions;
+    }
+
+    [System.Serializable]
     public class EndLevelConditionData
     {
         public STAT_TYPE statType;
@@ -101,7 +109,7 @@ namespace MilasQuest.Stats
     {
         public Dictionary<STAT_TYPE, Stat> Stats { get; private set; }
 
-        public Dictionary<STAT_TYPE, List<Action<Stat>>> OnStatUpdatedListeners; //pseudo observer pattern implementation
+        public Dictionary<STAT_TYPE, List<Action<Stat>>> OnStatUpdatedListeners { get; private set; } //pseudo observer pattern implementation
 
         public delegate void OnStatUpdated(Stat stat);
 
@@ -152,11 +160,6 @@ namespace MilasQuest.Stats
                 }
             }
         }
-    }
-
-    public class GatheredCellsEndLevelConditionData : EndLevelConditionData
-    {
-        public CellTypeData cellTypeData;
     }
 
     public enum STAT_TYPE

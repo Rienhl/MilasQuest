@@ -1,4 +1,5 @@
 ﻿using MilasQuest.Grids.GameData;
+using MilasQuest.Stats;
 using UnityEngine;
 
 namespace MilasQuest.GameData
@@ -8,6 +9,7 @@ namespace MilasQuest.GameData
     {
         public GridConfigurationData gridConfigurationData;
         public GridViewConfigurationData gridViewConfigurationData;
+        public EndLevelData endLevelData;
     }
 }
 
