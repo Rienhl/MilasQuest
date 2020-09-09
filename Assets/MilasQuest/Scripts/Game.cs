@@ -1,5 +1,5 @@
-﻿using MilasQuest.Grids;
-using MilasQuest.Grids.LinkableRules;
+﻿using MilasQuest.GameData;
+using MilasQuest.Grids;
 using MilasQuest.InputManagement;
 using MilasQuest.Pools;
 using System;
@@ -13,7 +13,9 @@ namespace MilasQuest
         private GridView gridView;
 
         [SerializeField]
-        private PoolData[] pools;
+        private PoolData[] _pools;
+        [SerializeField]
+        private LevelData _levelData;
 
         private InputHandler _inputHandler;
         private GridInputConversor _gridInputConversor;
@@ -22,13 +24,13 @@ namespace MilasQuest
 
         private void Start()
         {
-            for (int i = 0; i < pools.Length; i++)
+            for (int i = 0; i < _pools.Length; i++)
             {
-                Pool.CreatePool(pools[i]);
+                Pool.CreatePool(_pools[i]);
             }
-            _grid = new GridState(new GridConfig() { dimension = new PointInt2D() { X = 3, Y = 3 } });
+            _grid = new GridState(_levelData.gridConfigurationData);
             _grid.OnStartedUpdatingGrid += HandleOnStartedUpdatingGrid;
-            gridView.Init(_grid, new GridViewConfig() { cellSize = 1f, validInputRatio = 0.5f });
+            gridView.Init(_grid, _levelData.gridViewConfigurationData);
             _inputHandler = SolveInputHandler();
             _gridInputConversor = new GridInputConversor(_inputHandler, gridView, Camera.main);
             _gridInputConversor.Enable(true);

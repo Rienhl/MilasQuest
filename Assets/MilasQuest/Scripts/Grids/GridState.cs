@@ -1,4 +1,5 @@
-﻿using MilasQuest.Grids.LinkableRules;
+﻿using MilasQuest.Grids.GameData;
+using MilasQuest.Grids.LinkableRules;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -6,7 +7,7 @@ using UnityEngine;
 namespace MilasQuest.Grids
 {
     /// <summary>
-    /// Think similar to MVC, this class contains the model part of the grid, where it's current state is stored
+    /// Logical Layer of the Grid, contains its state
     /// independent from cell size, sprites, grid position in the world, etc...
     /// </summary>
     public class GridState
@@ -17,7 +18,7 @@ namespace MilasQuest.Grids
         //This is recommended both by Unity and Microsoft. (More info: https://docs.unity3d.com/Manual/BestPracticeUnderstandingPerformanceInUnity8.html)
         public Cell[][] Cells { get; private set; }
 
-        private GridConfig _config;
+        private GridConfigurationData _gridConfigurationData;
         private CellLinker _cellLinker;
 
         private const int CHAIN_MIN_CELL_COUNT = 3;
@@ -27,12 +28,12 @@ namespace MilasQuest.Grids
         public Action OnStartedUpdatingGrid;
         public Action OnFinishedUpdatingGrid;
 
-        public GridState(GridConfig config)
+        public GridState(GridConfigurationData gridconfigurationData)
         {
-            _config = config;
-            this.Dimension = config.dimension;
+            _gridConfigurationData = gridconfigurationData;
+            this.Dimension = gridconfigurationData.gridDimension;
             GenerateGrid();
-            _cellLinker = new CellLinker(Dimension, new CELL_LINKING_RULE[3] { CELL_LINKING_RULE.IS_SAME_TYPE, CELL_LINKING_RULE.IS_UNSELECTED, CELL_LINKING_RULE.IS_NEIGHBOUR_TO_LAST });
+            _cellLinker = new CellLinker(Dimension, _gridConfigurationData.linkingRules);
         }
 
         public bool AddCellAtPoint(PointInt2D point)
@@ -71,7 +72,7 @@ namespace MilasQuest.Grids
                 Cells[x] = new Cell[Dimension.Y];
                 for (int y = 0; y < Dimension.Y; y++)
                 {
-                    Cells[x][y] = new Cell(x, y);
+                    Cells[x][y] = new Cell(x, y, _gridConfigurationData.cellTypes[UnityEngine.Random.Range(0, _gridConfigurationData.cellTypes.Length)]);
                 }
             }
         }
@@ -94,7 +95,7 @@ namespace MilasQuest.Grids
                 Cells[cell.Index.X][y - 1] = Cells[cell.Index.X][y];
                 Cells[cell.Index.X][y - 1].UpdateIndex(cell.Index.X, y - 1);
             }
-            Cells[cell.Index.X][Dimension.Y - 1] = new Cell(cell.Index.X, Dimension.Y - 1);
+            Cells[cell.Index.X][Dimension.Y - 1] = new Cell(cell.Index.X, Dimension.Y - 1, _gridConfigurationData.cellTypes[UnityEngine.Random.Range(0, _gridConfigurationData.cellTypes.Length)]);
             OnNewCellSpawned?.Invoke(Cells[cell.Index.X][Dimension.Y - 1]);
         }
 

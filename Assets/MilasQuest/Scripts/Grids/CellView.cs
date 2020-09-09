@@ -2,6 +2,7 @@
 using UnityEngine;
 using DG.Tweening;
 using MilasQuest.Pools;
+using MilasQuest.Grids.GameData;
 
 namespace MilasQuest.Grids
 {
@@ -11,7 +12,6 @@ namespace MilasQuest.Grids
 
         public Cell Cell { get; private set; }
 
-        private CellViewProperties cellViewProperties;
         private Color originColor;
         private Vector3 _targetPos;
         private bool _eventsRegistered;
@@ -19,15 +19,13 @@ namespace MilasQuest.Grids
 
         public Action<CellView> OnCellIndexUpdated;
 
-        public void Init(Cell cell, CellViewProperties properties)
+        public void Init(Cell cell)
         {
             this.Cell = cell;
-            this.cellViewProperties = properties;
 
             if (cellSprite == null)
                 cellSprite = GetComponent<SpriteRenderer>();
-            cellSprite.sprite = properties.sprite;
-            cellSprite.color = cellViewProperties.rndmColors[cell.CellType];
+            cellSprite.sprite = cell.CellType.sprite;
             originColor = cellSprite.color;
             _eventsRegistered = false;
 

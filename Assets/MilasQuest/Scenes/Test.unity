@@ -301,8 +301,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   gridView: {fileID: 1109044245}
-  pools:
+  _pools:
   - {fileID: 11400000, guid: 4d86de7b328331646b7d13b11e768141, type: 2}
+  _levelData: {fileID: 11400000, guid: 1c7ec9c19f7a569418988fa465380fde, type: 2}
 --- !u!1 &1709154633
 GameObject:
   m_ObjectHideFlags: 0

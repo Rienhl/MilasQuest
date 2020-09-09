@@ -1,4 +1,5 @@
-﻿using MilasQuest.Pools;
+﻿using MilasQuest.Grids.GameData;
+using MilasQuest.Pools;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -7,7 +8,8 @@ namespace MilasQuest.Grids
 {
     /// <summary>
     /// Think MVC, this class contains the view part of the grid. It handles each cells visual representation, animations
-    /// and is used as information source for input processing
+    /// and is used as information source for input processing.
+    /// Before creating other types of views, this should be converted into an abstract class
     /// </summary>
     public class GridView : MonoBehaviour
     {
@@ -21,12 +23,12 @@ namespace MilasQuest.Grids
         public float ActiveInputRadius { get; private set; }
         
         private List<CellView> _cellViews;
-        private GridViewConfig _gridConfig;
+        private GridViewConfigurationData _gridConfig;
 
         private int _movingCellsCount = 0;
         public Action OnGridViewUpdated;
 
-        public void Init(GridState grid, GridViewConfig gridConfig)
+        public void Init(GridState grid, GridViewConfigurationData gridConfig)
         {
             _gridConfig = gridConfig;
 
@@ -39,24 +41,6 @@ namespace MilasQuest.Grids
             Grid.OnNewCellSpawned += HandleOnNewCellAdded;
             Grid.OnCellRemoved += HandleOnCellRemoved;
             Grid.OnFinishedUpdatingGrid += HandleOnGridUpdated;
-        }
-
-        public void SetViewResponsiveness(bool enable)
-        {
-            if (enable)
-            {
-                for (int i = 0; i < _cellViews.Count; i++)
-                {
-                    _cellViews[i].RegisterViewListeners();
-                }
-            }
-            else
-            {
-                for (int i = 0; i < _cellViews.Count; i++)
-                {
-                    _cellViews[i].UnregisterViewListeners();
-                }
-            }
         }
 
         private void PlaceCells()
@@ -74,7 +58,7 @@ namespace MilasQuest.Grids
         private CellView SpawnNewCellView(Cell cell)
         {
             CellView cellView = Pool.GetPool(cellProps.cellPoolData).Spawn(this.transform).GetComponent<CellView>();
-            cellView.Init(cell, cellProps);
+            cellView.Init(cell);
             cellView.gameObject.name = "Cell " + cellView.Cell.Index.ToString();
             cellView.transform.localPosition = GetLocalPositionFromIndex(new PointInt2D() { X = cell.Index.X, Y = Grid.Dimension.Y + 1 });
             cellView.OnCellIndexUpdated += HandleOnCellIndexUpdated;

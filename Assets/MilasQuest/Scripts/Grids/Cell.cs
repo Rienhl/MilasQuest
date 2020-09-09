@@ -1,10 +1,11 @@
-﻿using System;
+﻿using MilasQuest.Grids.GameData;
+using System;
 
 namespace MilasQuest.Grids
 {
     public class Cell
     {
-        public int CellType { get; private set; }
+        public CellTypeData CellType { get; private set; }
         public PointInt2D Index { get; protected set; }
         public bool IsSelected { get; protected set; }
 
@@ -12,9 +13,9 @@ namespace MilasQuest.Grids
         public Action OnSelected;
         public Action OnUnselected;
 
-        public Cell(int x, int y)
+        public Cell(int x, int y, CellTypeData cellTypeData)
         {
-            CellType = UnityEngine.Random.Range(0, 4);
+            CellType = cellTypeData;
             UpdateIndex(x, y);
         }
 
