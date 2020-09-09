@@ -1,6 +1,7 @@
 ﻿using MilasQuest.Grids;
 using MilasQuest.Grids.LinkableRules;
 using MilasQuest.InputManagement;
+using MilasQuest.Pools;
 using System;
 using UnityEngine;
 
@@ -11,6 +12,9 @@ namespace MilasQuest
         [SerializeField]
         private GridView gridView;
 
+        [SerializeField]
+        private PoolData[] pools;
+
         private InputHandler _inputHandler;
         private GridInputConversor _gridInputConversor;
         private GridState _grid;
@@ -18,6 +22,10 @@ namespace MilasQuest
 
         private void Start()
         {
+            for (int i = 0; i < pools.Length; i++)
+            {
+                Pool.CreatePool(pools[i]);
+            }
             _grid = new GridState(new GridConfig() { dimension = new PointInt2D() { X = 3, Y = 3 } });
             _grid.OnStartedUpdatingGrid += HandleOnStartedUpdatingGrid;
             gridView.Init(_grid, new GridViewConfig() { cellSize = 1f, validInputRatio = 0.5f });

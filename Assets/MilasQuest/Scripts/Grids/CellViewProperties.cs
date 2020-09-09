@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using MilasQuest.Pools;
+using UnityEngine;
 
 namespace MilasQuest.Grids
 {
@@ -7,5 +8,6 @@ namespace MilasQuest.Grids
     {
         public Sprite sprite;
         public Color[] rndmColors;
+        public PoolData cellPoolData;
     }
 }

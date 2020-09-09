@@ -1,6 +1,7 @@
 ﻿using System;
 using UnityEngine;
 using DG.Tweening;
+using MilasQuest.Pools;
 
 namespace MilasQuest.Grids
 {
@@ -70,11 +71,8 @@ namespace MilasQuest.Grids
         public void DestroyCell()
         {
             this.transform.DOKill();
-            Cell.OnIndexUpdated -= HandleOnIndexUpdated;
-            Cell.OnSelected -= HandleOnCellSelected;
-            Cell.OnUnselected -= HandleOnCellUnselected;
-            this.transform.DOScale(0, 0.3f).SetEase(Ease.OutCirc);
-            //repool
+            UnregisterViewListeners();
+            this.transform.DOScale(0, 0.3f).SetEase(Ease.OutCirc).OnComplete(() => GetComponent<PoolObject>().Despawn());
         }
 
         private void HandleOnIndexUpdated()

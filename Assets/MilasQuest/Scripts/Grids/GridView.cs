@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MilasQuest.Pools;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -72,8 +73,7 @@ namespace MilasQuest.Grids
 
         private CellView SpawnNewCellView(Cell cell)
         {
-            CellView cellView = new GameObject().AddComponent<CellView>();
-            cellView.gameObject.AddComponent<SpriteRenderer>();
+            CellView cellView = Pool.GetPool(cellProps.cellPoolData).Spawn(this.transform).GetComponent<CellView>();
             cellView.Init(cell, cellProps);
             cellView.gameObject.name = "Cell " + cellView.Cell.Index.ToString();
             cellView.transform.localPosition = GetLocalPositionFromIndex(new PointInt2D() { X = cell.Index.X, Y = Grid.Dimension.Y + 1 });
