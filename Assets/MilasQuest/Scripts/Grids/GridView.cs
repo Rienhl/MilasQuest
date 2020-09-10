@@ -1,4 +1,5 @@
-﻿using MilasQuest.Grids.GameData;
+﻿using DG.Tweening;
+using MilasQuest.Grids.GameData;
 using MilasQuest.Pools;
 using System;
 using System.Collections.Generic;
@@ -23,10 +24,12 @@ namespace MilasQuest.Grids
         private GridViewConfigurationData _gridViewConfigurationData;
         private Queue<CellView> removalQueue;
         private Queue<CellView> movementQueue;
+        private GameObject[] _backgroundTiles;
 
         private int _movingCellsCount = 0;
         private float accumDelay = 0;
         private int _cellsToRemove = 0;
+
         public Action OnGridViewUpdated;
 
         public void Init(GridState grid, GridViewConfigurationData gridConfig)
@@ -45,6 +48,23 @@ namespace MilasQuest.Grids
             _gridState.OnGridUpdated += HandleOnGridUpdated;
 
             SpawnGridCells();
+            SpawnBackground();
+        }
+
+        private void SpawnBackground()
+        {
+            _backgroundTiles = new GameObject[_cellViews.Count];
+            Vector3 scale = Vector3.one * _gridViewConfigurationData.cellSize;
+            for (int i = 0; i < _backgroundTiles.Length; i++)
+            {
+                _backgroundTiles[i] = Pool.GetPool(_gridViewConfigurationData.backgroundTilesPoolDatas[i % 2]).Spawn(this.transform);
+                _backgroundTiles[i].transform.localScale = Vector3.zero;
+                _backgroundTiles[i].transform.localPosition = GetLocalPositionFromIndex(_cellViews[i].Cell.Index);
+                if (i == _backgroundTiles.Length - 1)
+                    _backgroundTiles[i].transform.DOScale(scale, _gridViewConfigurationData.backgroundConstructionDelay).SetDelay(_gridViewConfigurationData.backgroundConstructionDelay * i * 0.5f).OnComplete(DropAllCellsIntoGrid);
+                else
+                    _backgroundTiles[i].transform.DOScale(scale, _gridViewConfigurationData.backgroundConstructionDelay).SetDelay(_gridViewConfigurationData.backgroundConstructionDelay * i * 0.5f);
+            }
         }
 
         private void SpawnGridCells()
@@ -54,17 +74,27 @@ namespace MilasQuest.Grids
             {
                 for (int y = 0; y < _gridState.Cells[x].Length; y++)
                 {
-                    SpawnNewCellView(_gridState.Cells[x][y]).PlayMovement();
+                    SpawnNewCellView(_gridState.Cells[x][y]);
                 }
             }
+        }
+
+        private void DropAllCellsIntoGrid()
+        {
+            for (int i = 0; i < _cellViews.Count - 1; i++)
+            {
+                _cellViews[i].PlayMovement();
+            }
+            _cellViews[_cellViews.Count - 1].PlayMovement(() => OnGridViewUpdated?.Invoke());
         }
 
         private CellView SpawnNewCellView(Cell cell)
         {
             CellView cellView = Pool.GetPool(_gridViewConfigurationData.cellPoolData).Spawn(this.transform).GetComponent<CellView>();
+            cellView.transform.localPosition = GetLocalPositionFromIndex(new PointInt2D() { X = cell.Index.X, Y = _gridState.Cells[cell.Index.X].Length + 1 });
+            cellView.transform.localScale = Vector3.one * _gridViewConfigurationData.cellSize * _gridViewConfigurationData.cellContentScale;
             cellView.Init(cell);
             cellView.gameObject.name = "Cell " + cellView.Cell.Index.ToString();
-            cellView.transform.localPosition = GetLocalPositionFromIndex(new PointInt2D() { X = cell.Index.X, Y = _gridState.Cells[cell.Index.X].Length + 1 });
             cellView.OnCellIndexUpdated += HandleOnCellIndexUpdated;
             _cellViews.Add(cellView);
             HandleOnCellIndexUpdated(cellView);

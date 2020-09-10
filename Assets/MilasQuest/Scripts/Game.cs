@@ -3,82 +3,29 @@ using MilasQuest.Grids;
 using MilasQuest.InputManagement;
 using MilasQuest.Pools;
 using MilasQuest.Stats;
+using MilasQuest.UI;
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace MilasQuest
 {
-    public class LevelEnder
-    {
-        private EndLevelCondition[] _successConditions;
-        private EndLevelCondition[] _failureConditions;
-        private LevelStats _levelStats;
-
-        public LevelEnder(EndLevelData endLevelData, LevelStats levelStats)
-        {
-            _levelStats = levelStats;
-            _successConditions = new EndLevelCondition[endLevelData.successConditions.Length];
-            _failureConditions = new EndLevelCondition[endLevelData.failureConditions.Length];
-
-            for (int i = 0; i < endLevelData.successConditions.Length; i++)
-            {
-                _successConditions[i] = new EndLevelCondition(levelStats.Stats[endLevelData.successConditions[i].statType], endLevelData.successConditions[i].relationalOperator, endLevelData.successConditions[i].targetValue);
-                _levelStats.OnStatUpdatedListeners[endLevelData.successConditions[i].statType].Add(HandleTrackedStatUpdate);
-            }
-
-            for (int i = 0; i < endLevelData.failureConditions.Length; i++)
-            {
-                _failureConditions[i] = new EndLevelCondition(levelStats.Stats[endLevelData.failureConditions[i].statType], endLevelData.failureConditions[i].relationalOperator, endLevelData.failureConditions[i].targetValue);
-                _levelStats.OnStatUpdatedListeners[endLevelData.failureConditions[i].statType].Add(HandleTrackedStatUpdate);
-
-            }
-        }
-
-        private void HandleTrackedStatUpdate(Stat _)
-        {
-            bool success = true;
-            for (int i = 0; i < _successConditions.Length; i++)
-            {
-                if (!_successConditions[i].Evaluate())
-                {
-                    success = false;
-                    break;
-                }
-            }
-            if (success == true)
-            {
-                Debug.Log("SUCCESS");
-            }
-            else
-            {
-                for (int i = 0; i < _failureConditions.Length; i++)
-                {
-                    if (_failureConditions[i].Evaluate())
-                    {
-                        Debug.Log("FAILED");
-                        break;
-                    }
-                }
-            }
-
-        }
-    }
-
     public class Game : MonoBehaviour
     {
-        [SerializeField]
-        private GridView gridView;
+        [SerializeField] private StatsPanel statsPanel;
 
-        [SerializeField]
-        private PoolData[] _pools;
-        [SerializeField]
-        private LevelData _levelData;
+        [SerializeField] private GridView gridView;
+        [SerializeField] private PoolData[] _pools;
+        [SerializeField] private LevelData _levelData;
 
         private InputHandler _inputHandler;
         private GridInputConversor _gridInputConversor;
         private GridState _grid;
         private LevelStats _levelStats;
         private LevelEnder _levelEnder;
+        private ScoreSolver _scoreSolver;
+
+        private StatModifier _moveConsumedModifier;
 
         private void Start()
         {
@@ -95,15 +42,9 @@ namespace MilasQuest
             RegisterGridInputActions();
             _levelStats = new LevelStats();
             _levelEnder = new LevelEnder(_levelData.endLevelData, _levelStats);
-            _levelStats.OnStatUpdatedListeners[STAT_TYPE.TOTAL_SCORE].Add((Stat s) => Debug.Log(s.GetCurrentValue()));
-        }
-
-        private void Update()
-        {
-            if (Input.GetKeyDown(KeyCode.Space))
-            {
-                _grid.CheckForDeadlock();
-            }
+            _scoreSolver = new ScoreSolver(_levelData.scoreValuesData);
+            _moveConsumedModifier = new StatModifier() { targetStat = STAT_TYPE.TOTAL_MOVES, operation = ARITHMETIC_OPERATOR.ADD, value = 1 };
+            statsPanel.Setup(_levelStats);
         }
 
         private void RegisterGridInputActions()
@@ -134,12 +75,18 @@ namespace MilasQuest
 
         private void HandleOnGridInputEnded(PointInt2D newPoint)
         {
-            _levelStats.ProcessStatModifier(new StatModifier() { operation = ARITHMETIC_OPERATOR.ADD, targetStat = STAT_TYPE.TOTAL_SCORE, value = 5 });
             _grid.ProcessCurrentLink();
         }
 
-        private void HandleOnStartedUpdatingGrid()
+        private void HandleOnStartedUpdatingGrid(List<Cell> removedCells)
         {
+            _levelStats.ProcessStatModifier(new StatModifier() { targetStat = STAT_TYPE.TOTAL_SCORE, operation = ARITHMETIC_OPERATOR.ADD, value = _scoreSolver.SolveScore(removedCells)});
+            _levelStats.ProcessStatModifier(_moveConsumedModifier);
+            _levelStats.ProcessStatModifier(new StatModifier() { targetStat = STAT_TYPE.GATHERED_CELLS_OF_TYPE, operation = ARITHMETIC_OPERATOR.ADD, value = removedCells.Count });
+            foreach (KeyValuePair<STAT_TYPE, Stat> stat in _levelStats.Stats)
+            {
+                Debug.Log($"{stat.Key}: {stat.Value.GetCurrentValue()}");
+            }
             UnregisterGridInputActions();
             gridView.OnGridViewUpdated += HandleGridViewUpdated;
         }
@@ -147,9 +94,7 @@ namespace MilasQuest
         private void HandleGridViewUpdated()
         {
             gridView.OnGridViewUpdated -= HandleGridViewUpdated;
-            //gridView.SetViewResponsiveness(false);
             _grid.CheckForDeadlock();
-            //gridView.SetViewResponsiveness(true);
             RegisterGridInputActions();
         }
 

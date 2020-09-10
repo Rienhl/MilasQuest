@@ -7,10 +7,10 @@ using UnityEngine;
 namespace MilasQuest.Grids
 {
     /// <summary>
-    /// Logical Layer of the Grid, contains its state
+    /// Logical Layer of the Grid, contains its model and state (MVC)
     /// independent from cell size, sprites, grid position in the world, etc...
     /// </summary>
-    public class GridState
+    public class GridState //this class should be split into model/controller classes 
     {
         public PointInt2D Dimension { get; private set; }
 
@@ -25,7 +25,7 @@ namespace MilasQuest.Grids
 
         public Action<Cell> OnCellAdded;
         public Action<Cell> OnCellRemoved;
-        public Action OnStartedUpdatingGrid;
+        public Action<List<Cell>> OnStartedUpdatingGrid;
         public Action OnGridUpdated;
 
         public GridState(GridConfigurationData gridconfigurationData)
@@ -79,7 +79,7 @@ namespace MilasQuest.Grids
 
         private void RemoveCells(List<Cell> chainedCells)
         {
-            OnStartedUpdatingGrid?.Invoke();
+            OnStartedUpdatingGrid?.Invoke(chainedCells);
             for (int i = 0; i < chainedCells.Count; i++)
             {
                 RemoveCell(chainedCells[i]);
@@ -117,7 +117,7 @@ namespace MilasQuest.Grids
                     if (_cellLinker.LinkedCells.Contains(cellToCheck))
                         continue;
                     openList.Clear();
-                    _cellLinker.AddCell(cellToCheck);
+                    _cellLinker.AddCell(cellToCheck, false);
                     if (AreNeighboursDeadlocked(cellToCheck, openList))
                     {
                         closedList.AddRange(_cellLinker.LinkedCells);
@@ -144,7 +144,7 @@ namespace MilasQuest.Grids
             {
                 if (GridUtils.IsPointOutOfGridBounds(neighbours[i], Dimension.X, Dimension.Y))
                     continue;
-                bool r = _cellLinker.AddCell(Cells[neighbours[i].X][neighbours[i].Y]);
+                bool r = _cellLinker.AddCell(Cells[neighbours[i].X][neighbours[i].Y], false);
                 if (r)
                 {
                     if (_cellLinker.LinkedCells.Count >= 3)

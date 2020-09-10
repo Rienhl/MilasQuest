@@ -9,26 +9,30 @@ namespace MilasQuest.Grids
     public class CellView : MonoBehaviour
     {
         [SerializeField] private SpriteRenderer cellSprite;
+        [SerializeField] private SpriteRenderer glow;
 
         public Cell Cell { get; private set; }
+        public bool IsCuedForMovement { get; private set; }
 
         private Color originColor;
         private Vector3 _targetPos;
         private bool _eventsRegistered;
-        public bool IsCuedForMovement { get; private set; }
+        private bool _isVisible;
+        private Vector3 _originScale;
 
         public Action<CellView> OnCellIndexUpdated;
 
         public void Init(Cell cell)
         {
             this.Cell = cell;
-
+            _originScale = transform.localScale;
             if (cellSprite == null)
                 cellSprite = GetComponent<SpriteRenderer>();
             cellSprite.sprite = cell.CellType.sprite;
             originColor = cellSprite.color;
+            cellSprite.color = new Color(originColor.r, originColor.g, originColor.b, 0);
             _eventsRegistered = false;
-
+            _isVisible = false;
             RegisterViewListeners();
         }
 
@@ -54,15 +58,18 @@ namespace MilasQuest.Grids
 
         private void HandleOnCellSelected()
         {
-            transform.localScale = Vector3.one;
-            cellSprite.DOFade(1, 0.3f);
             transform.DOShakeScale(0.5f, 0.5f);
+            glow.gameObject.SetActive(true);
+            glow.DOFade(1, 0.2f);
+            glow.transform.DOLocalRotate(new Vector3(0, 0, UnityEngine.Random.Range(-60, -90)), 1).SetLoops(-1, LoopType.Incremental).SetEase(Ease.Linear).SetRelative();
         }
 
         private void HandleOnCellUnselected()
         {
+            glow.transform.DOKill();
+            glow.DOFade(0, 0.2f).OnComplete(() => { glow.DOKill(); glow.gameObject.SetActive(false); });
             transform.DOKill();
-            transform.localScale = Vector3.one;
+            transform.localScale = _originScale;
             cellSprite.DOFade(originColor.a, 0.3f);
         }
 
@@ -70,7 +77,7 @@ namespace MilasQuest.Grids
         {
             this.transform.DOKill();
             UnregisterViewListeners();
-            this.transform.DOScale(0, 0.3f).SetEase(Ease.InBack).SetDelay(delay).OnComplete(() => { OnDestroyed?.Invoke(); GetComponent<PoolObject>().Despawn(); });
+            this.transform.DOScale(0, 0.3f).SetEase(Ease.InBack).SetDelay(delay).OnComplete(() => { HandleOnCellUnselected();  OnDestroyed?.Invoke(); GetComponent<PoolObject>().Despawn(); });
         }
 
         private void HandleOnIndexUpdated()
@@ -86,10 +93,15 @@ namespace MilasQuest.Grids
 
         public void PlayMovement(Action onCompleteCallback = null)
         {
+            if (!_isVisible)
+            {
+                _isVisible = true;
+                cellSprite.DOFade(originColor.a, 0.2f).OnComplete(() => PlayMovement(onCompleteCallback));
+                return;
+            }
             if (IsCuedForMovement)
             {
                 this.gameObject.transform.DOMove(_targetPos, 0.5f).SetEase(Ease.OutBounce).OnComplete(() => { IsCuedForMovement = false; onCompleteCallback?.Invoke(); });
-
             }
         }
     }

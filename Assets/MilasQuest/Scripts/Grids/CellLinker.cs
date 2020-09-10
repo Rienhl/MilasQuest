@@ -41,19 +41,19 @@ namespace MilasQuest.Grids
             }
         }
 
-        public bool AddCell(Cell newCell)
+        public bool AddCell(Cell newCell, bool updateView = true)
         {
             CELL_EVALUATION_OUTPUT currentOutput = EvaluateCell(newCell);
             switch (currentOutput)
             {
                 case CELL_EVALUATION_OUTPUT.ADD:
-                    newCell.SetAsSelected();
+                    newCell.SetAsSelected(true, updateView);
                     LinkedCells.Add(newCell);
                     return true;
                 case CELL_EVALUATION_OUTPUT.DONT_ADD:
                     break;
                 case CELL_EVALUATION_OUTPUT.REMOVE_PREVIOUS:
-                    LinkedCells[LinkedCells.Count - 1].SetAsSelected(false);
+                    LinkedCells[LinkedCells.Count - 1].SetAsSelected(false, updateView);
                     LinkedCells.RemoveAt(LinkedCells.Count - 1);
                     break;
                 default:

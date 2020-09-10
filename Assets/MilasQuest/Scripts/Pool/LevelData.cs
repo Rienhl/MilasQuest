@@ -10,6 +10,7 @@ namespace MilasQuest.GameData
         public GridConfigurationData gridConfigurationData;
         public GridViewConfigurationData gridViewConfigurationData;
         public EndLevelData endLevelData;
+        public ScoreValuesData scoreValuesData;
     }
 }
 

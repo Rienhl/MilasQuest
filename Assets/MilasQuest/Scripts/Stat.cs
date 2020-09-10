@@ -164,7 +164,7 @@ namespace MilasQuest.Stats
 
     public enum STAT_TYPE
     {
-        REMAINING_MOVES,
+        TOTAL_MOVES,
         GATHERED_CELLS_OF_TYPE,
         TOTAL_SCORE
     }

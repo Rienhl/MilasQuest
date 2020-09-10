@@ -1,5 +1,6 @@
 ﻿using MilasQuest.Grids.GameData;
 using System;
+using UnityEngine.PlayerLoop;
 
 namespace MilasQuest.Grids
 {
@@ -25,9 +26,13 @@ namespace MilasQuest.Grids
             OnIndexUpdated?.Invoke();
         }
 
-        internal void SetAsSelected(bool selected = true)
+        public void SetAsSelected(bool selected = true, bool updateView = true)
         {
+            if (IsSelected == selected)
+                return;
             IsSelected = selected;
+            if (!updateView)
+                return;
             if (IsSelected)
                 OnSelected?.Invoke();
             else

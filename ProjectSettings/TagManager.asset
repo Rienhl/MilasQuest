@@ -41,3 +41,12 @@ TagManager:
   - name: Default
     uniqueID: 0
     locked: 0
+  - name: Background
+    uniqueID: 2626843277
+    locked: 0
+  - name: Cells
+    uniqueID: 2851467615
+    locked: 0
+  - name: Front
+    uniqueID: 1202373357
+    locked: 0

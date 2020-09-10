@@ -12,7 +12,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2b2360dadad4d1e4492e28a551a7a6e0, type: 3}
   m_Name: GridViewConfigData
   m_EditorClassIdentifier: 
-  cellSize: 1
+  cellSize: 2
+  cellContentScale: 0.8
   validInputRatio: 0.5
   cellDestructionDelay: 0.15
+  backgroundConstructionDelay: 0.06
   cellPoolData: {fileID: 11400000, guid: 4d86de7b328331646b7d13b11e768141, type: 2}
+  backgroundTilesPoolDatas:
+  - {fileID: 11400000, guid: 181d04fd469914042a7d66060c3bcfd2, type: 2}
+  - {fileID: 11400000, guid: 00357a4c12a19f74ea07d281e60ca2b8, type: 2}
