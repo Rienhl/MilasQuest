@@ -61,9 +61,9 @@ namespace MilasQuest.Grids
                 _backgroundTiles[i].transform.localScale = Vector3.zero;
                 _backgroundTiles[i].transform.localPosition = GetLocalPositionFromIndex(_cellViews[i].Cell.Index);
                 if (i == _backgroundTiles.Length - 1)
-                    _backgroundTiles[i].transform.DOScale(scale, _gridViewConfigurationData.backgroundConstructionDelay).SetDelay(_gridViewConfigurationData.backgroundConstructionDelay * i * 0.5f).OnComplete(DropAllCellsIntoGrid);
+                    _backgroundTiles[i].transform.DOScale(scale, _gridViewConfigurationData.backgroundConstructionDelay).SetDelay(_gridViewConfigurationData.backgroundConstructionDelay * i * 0.1f).OnComplete(DropAllCellsIntoGrid);
                 else
-                    _backgroundTiles[i].transform.DOScale(scale, _gridViewConfigurationData.backgroundConstructionDelay).SetDelay(_gridViewConfigurationData.backgroundConstructionDelay * i * 0.5f);
+                    _backgroundTiles[i].transform.DOScale(scale, _gridViewConfigurationData.backgroundConstructionDelay).SetDelay(_gridViewConfigurationData.backgroundConstructionDelay * i * 0.1f);
             }
         }
 

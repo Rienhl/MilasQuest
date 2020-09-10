@@ -83,10 +83,6 @@ namespace MilasQuest
             _levelStats.ProcessStatModifier(new StatModifier() { targetStat = STAT_TYPE.TOTAL_SCORE, operation = ARITHMETIC_OPERATOR.ADD, value = _scoreSolver.SolveScore(removedCells)});
             _levelStats.ProcessStatModifier(_moveConsumedModifier);
             _levelStats.ProcessStatModifier(new StatModifier() { targetStat = STAT_TYPE.GATHERED_CELLS_OF_TYPE, operation = ARITHMETIC_OPERATOR.ADD, value = removedCells.Count });
-            foreach (KeyValuePair<STAT_TYPE, Stat> stat in _levelStats.Stats)
-            {
-                Debug.Log($"{stat.Key}: {stat.Value.GetCurrentValue()}");
-            }
             UnregisterGridInputActions();
             gridView.OnGridViewUpdated += HandleGridViewUpdated;
         }

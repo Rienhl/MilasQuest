@@ -58,7 +58,8 @@ namespace MilasQuest.Grids
 
         private void HandleOnCellSelected()
         {
-            transform.DOShakeScale(0.5f, 0.5f);
+            transform.DOBlendableScaleBy(Vector3.one * 0.3f, 0.3f).SetEase(Ease.OutElastic);
+            transform.DOBlendablePunchRotation(Vector3.forward * 15f, 1, 8);
             glow.gameObject.SetActive(true);
             glow.DOFade(1, 0.2f);
             glow.transform.DOLocalRotate(new Vector3(0, 0, UnityEngine.Random.Range(-60, -90)), 1).SetLoops(-1, LoopType.Incremental).SetEase(Ease.Linear).SetRelative();
@@ -69,6 +70,7 @@ namespace MilasQuest.Grids
             glow.transform.DOKill();
             glow.DOFade(0, 0.2f).OnComplete(() => { glow.DOKill(); glow.gameObject.SetActive(false); });
             transform.DOKill();
+            transform.localRotation = Quaternion.identity;
             transform.localScale = _originScale;
             cellSprite.DOFade(originColor.a, 0.3f);
         }
