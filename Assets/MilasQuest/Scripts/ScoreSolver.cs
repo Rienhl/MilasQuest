@@ -1,7 +1,4 @@
-﻿using MilasQuest.Grids;
-using System.Collections.Generic;
-
-namespace MilasQuest
+﻿namespace MilasQuest
 {
     public class ScoreSolver
     {
@@ -12,9 +9,9 @@ namespace MilasQuest
             _scoreValuesData = scoreValuesData;
         }
 
-        public float SolveScore(List<Cell> pickedCells)
+        public float SolveScore(int pickedCellsCount)
         {
-            return _scoreValuesData.basicChainScore * (1 + (pickedCells.Count - _scoreValuesData.minLinkCount) * _scoreValuesData.extraChainMultiplier);
+            return _scoreValuesData.basicChainScore * (1 + (pickedCellsCount - _scoreValuesData.minLinkCount) * _scoreValuesData.extraChainMultiplier);
         }
 
     }

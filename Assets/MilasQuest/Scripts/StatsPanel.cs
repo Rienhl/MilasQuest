@@ -7,20 +7,36 @@ namespace MilasQuest.UI
     {
         [SerializeField] StatPanel statPanel_score;
         [SerializeField] StatPanel statPanel_totalMoves;
-        [SerializeField] StatPanel statPanel_gatheredCells;
+        [SerializeField] GatheredCellsStatPanel[] statPanels_gatheredCells;
 
         public void Setup(LevelStats levelStats)
         {
             statPanel_score.Setup(levelStats.Stats[STAT_TYPE.TOTAL_SCORE]);
             statPanel_totalMoves.Setup(levelStats.Stats[STAT_TYPE.TOTAL_MOVES]);
-            statPanel_gatheredCells.Setup(levelStats.Stats[STAT_TYPE.GATHERED_CELLS_OF_TYPE]);
+            int currentIndex = 0;
+            foreach (GatheredCellsStat stat in levelStats.GatheredCells.Values)
+            {
+                if (currentIndex == statPanels_gatheredCells.Length)
+                {
+                    Debug.LogError("Not enough GatheredCellsStatPanels avaialble to setup!", this.gameObject);
+                    return;
+                }
+                statPanels_gatheredCells[currentIndex].gameObject.SetActive(true);
+                statPanels_gatheredCells[currentIndex].Setup(stat, 10);
+                currentIndex++;
+            }
+
+            for (int i = currentIndex; i < statPanels_gatheredCells.Length; i++)
+            {
+                statPanels_gatheredCells[i].gameObject.SetActive(false);
+            }
         }
 
         public void Unsetup()
         {
             statPanel_score.Unsetup();
             statPanel_totalMoves.Unsetup();
-            statPanel_gatheredCells.Unsetup();
+            //statPanel_gatheredCells.Unsetup();
         }
     }
 }

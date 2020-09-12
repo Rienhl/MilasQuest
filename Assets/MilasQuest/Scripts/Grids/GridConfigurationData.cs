@@ -1,4 +1,5 @@
 ﻿using MilasQuest.Grids.LinkableRules;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace MilasQuest.Grids.GameData
@@ -11,6 +12,6 @@ namespace MilasQuest.Grids.GameData
     {
         public PointInt2D gridDimension;
         public CELL_LINKING_RULE[] linkingRules;
-        public CellTypeData[] cellTypes;
+        public CELL_TYPES[] cellsInLevel;
     }
 }

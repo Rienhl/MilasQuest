@@ -1,6 +1,5 @@
-﻿using MilasQuest.Grids.GameData;
+﻿using MilasQuest.GameData;
 using System;
-using UnityEngine.PlayerLoop;
 
 namespace MilasQuest.Grids
 {

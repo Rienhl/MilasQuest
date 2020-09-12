@@ -12,4 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9af67f73a47a85e48a1b3a9efff019bd, type: 3}
   m_Name: CellType_02_green
   m_EditorClassIdentifier: 
+  id: 106335259
+  definedName: SOCKS_GREEN
   sprite: {fileID: 21300000, guid: b6191457f3c681a4193e6292ce1597be, type: 3}

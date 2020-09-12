@@ -1,4 +1,5 @@
-﻿using MilasQuest.Grids.GameData;
+﻿using MilasQuest.GameData;
+using MilasQuest.Grids.GameData;
 using MilasQuest.Grids.LinkableRules;
 using System;
 using System.Collections.Generic;
@@ -20,8 +21,9 @@ namespace MilasQuest.Grids
 
         private GridConfigurationData _gridConfigurationData;
         private CellLinker _cellLinker;
+        private CellTypeData[] _cellsInLevel;
 
-        private const int CHAIN_MIN_CELL_COUNT = 3;
+        private const int _CHAIN_MIN_CELL_COUNT = 3;
 
         public Action<Cell> OnCellAdded;
         public Action<Cell> OnCellRemoved;
@@ -32,8 +34,18 @@ namespace MilasQuest.Grids
         {
             _gridConfigurationData = gridconfigurationData;
             this.Dimension = gridconfigurationData.gridDimension;
+            GetCellsInLevelDatas();
             GenerateGrid();
             _cellLinker = new CellLinker(Dimension, _gridConfigurationData.linkingRules);
+        }
+
+        private void GetCellsInLevelDatas()
+        {
+            _cellsInLevel = new CellTypeData[_gridConfigurationData.cellsInLevel.Length];
+            for (int i = 0; i < _cellsInLevel.Length; i++)
+            {
+                _cellsInLevel[i] = CellDataProvider.Instance.GetCellTypeData(_gridConfigurationData.cellsInLevel[i]);
+            }
         }
 
         public bool AddCellAtPoint(PointInt2D point)
@@ -45,7 +57,7 @@ namespace MilasQuest.Grids
 
         public bool ProcessCurrentLink()
         {
-            if (_cellLinker.LinkedCells.Count >= CHAIN_MIN_CELL_COUNT) //this should be managed by a chainender condition
+            if (_cellLinker.LinkedCells.Count >= _CHAIN_MIN_CELL_COUNT) //this should be managed by a chainender condition
             {
                 RemoveCells(_cellLinker.LinkedCells);
                 _cellLinker.ClearLink();
@@ -72,9 +84,14 @@ namespace MilasQuest.Grids
                 Cells[x] = new Cell[Dimension.Y];
                 for (int y = 0; y < Dimension.Y; y++)
                 {
-                    Cells[x][y] = new Cell(x, y, _gridConfigurationData.cellTypes[UnityEngine.Random.Range(0, _gridConfigurationData.cellTypes.Length)]);
+                    Cells[x][y] = new Cell(x, y, GetRandomCell());
                 }
             }
+        }
+
+        private CellTypeData GetRandomCell()
+        {
+            return _cellsInLevel[UnityEngine.Random.Range(0, _cellsInLevel.Length)];
         }
 
         private void RemoveCells(List<Cell> chainedCells)
@@ -95,7 +112,7 @@ namespace MilasQuest.Grids
                 Cells[cell.Index.X][y - 1] = Cells[cell.Index.X][y];
                 Cells[cell.Index.X][y - 1].UpdateIndex(cell.Index.X, y - 1);
             }
-            Cells[cell.Index.X][Dimension.Y - 1] = new Cell(cell.Index.X, Dimension.Y - 1, _gridConfigurationData.cellTypes[UnityEngine.Random.Range(0, _gridConfigurationData.cellTypes.Length)]);
+            Cells[cell.Index.X][Dimension.Y - 1] = new Cell(cell.Index.X, Dimension.Y - 1, GetRandomCell());
             OnCellAdded?.Invoke(Cells[cell.Index.X][Dimension.Y - 1]);
         }
 

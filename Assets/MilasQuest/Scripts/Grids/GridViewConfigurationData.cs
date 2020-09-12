@@ -11,8 +11,9 @@ namespace MilasQuest.Grids.GameData
     public class GridViewConfigurationData : ScriptableObject
     {
         public float cellSize;
-        [Range(0,1)]
+        [Range(0, 1)]
         public float cellContentScale;
+        [Range(0, 1)]
         public float validInputRatio;
         public float cellDestructionDelay = 0.2f;
         public float backgroundConstructionDelay = 0.1f;

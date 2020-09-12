@@ -22,7 +22,6 @@ namespace MilasQuest
         private GridInputConversor _gridInputConversor;
         private GridState _grid;
         private LevelStats _levelStats;
-        private LevelEnder _levelEnder;
         private ScoreSolver _scoreSolver;
 
         private StatModifier _moveConsumedModifier;
@@ -40,9 +39,7 @@ namespace MilasQuest
             _gridInputConversor = new GridInputConversor(_inputHandler, gridView, Camera.main);
             _gridInputConversor.Enable(true);
             RegisterGridInputActions();
-            _levelStats = new LevelStats();
-            _levelEnder = new LevelEnder(_levelData.endLevelData, _levelStats);
-            _scoreSolver = new ScoreSolver(_levelData.scoreValuesData);
+            _levelStats = new LevelStats(_levelData.endLevelData, _levelData.scoreValuesData);
             _moveConsumedModifier = new StatModifier() { targetStat = STAT_TYPE.TOTAL_MOVES, operation = ARITHMETIC_OPERATOR.ADD, value = 1 };
             statsPanel.Setup(_levelStats);
         }
@@ -80,9 +77,7 @@ namespace MilasQuest
 
         private void HandleOnStartedUpdatingGrid(List<Cell> removedCells)
         {
-            _levelStats.ProcessStatModifier(new StatModifier() { targetStat = STAT_TYPE.TOTAL_SCORE, operation = ARITHMETIC_OPERATOR.ADD, value = _scoreSolver.SolveScore(removedCells)});
-            _levelStats.ProcessStatModifier(_moveConsumedModifier);
-            _levelStats.ProcessStatModifier(new StatModifier() { targetStat = STAT_TYPE.GATHERED_CELLS_OF_TYPE, operation = ARITHMETIC_OPERATOR.ADD, value = removedCells.Count });
+            _levelStats.ProcessAction((CELL_TYPES)removedCells[0].CellType.id, removedCells.Count);
             UnregisterGridInputActions();
             gridView.OnGridViewUpdated += HandleGridViewUpdated;
         }
