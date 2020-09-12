@@ -1,4 +1,6 @@
 ﻿using MilasQuest.Stats;
+using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace MilasQuest.UI
@@ -9,10 +11,13 @@ namespace MilasQuest.UI
         [SerializeField] StatPanel statPanel_totalMoves;
         [SerializeField] GatheredCellsStatPanel[] statPanels_gatheredCells;
 
+        public Dictionary<int, GatheredCellsStatPanel> ActiveGatheredCellsPanels { get; private set; }
+
         public void Setup(LevelStats levelStats)
         {
             statPanel_score.Setup(levelStats.Stats[STAT_TYPE.TOTAL_SCORE]);
             statPanel_totalMoves.Setup(levelStats.Stats[STAT_TYPE.TOTAL_MOVES]);
+            ActiveGatheredCellsPanels = new Dictionary<int, GatheredCellsStatPanel>();
             int currentIndex = 0;
             foreach (GatheredCellsStat stat in levelStats.GatheredCells.Values)
             {
@@ -23,6 +28,7 @@ namespace MilasQuest.UI
                 }
                 statPanels_gatheredCells[currentIndex].gameObject.SetActive(true);
                 statPanels_gatheredCells[currentIndex].Setup(stat, 10);
+                ActiveGatheredCellsPanels.Add((int)stat.CellType, statPanels_gatheredCells[currentIndex]);
                 currentIndex++;
             }
 
@@ -36,7 +42,10 @@ namespace MilasQuest.UI
         {
             statPanel_score.Unsetup();
             statPanel_totalMoves.Unsetup();
-            //statPanel_gatheredCells.Unsetup();
+            for (int i = 0; i < statPanels_gatheredCells.Length; i++)
+            {
+                statPanels_gatheredCells[i].Unsetup();
+            }
         }
     }
 }

@@ -7,8 +7,8 @@ namespace MilasQuest.Grids.GameData
     /// Contains any visual configuration for our current grid state
     /// This allows for different grid views applied to the same grid state
     /// </summary>
-    [CreateAssetMenu(fileName = "New Grid View Configuration Data", menuName = "MilasQuest/Data/Create New Grid View Configuration Data")]
-    public class GridViewConfigurationData : ScriptableObject
+    [CreateAssetMenu(fileName = "New Grid View Settings Data", menuName = "MilasQuest/Data/Create New Grid View Settings Data")]
+    public class GridViewSettings : ScriptableObject
     {
         public float cellSize;
         [Range(0, 1)]

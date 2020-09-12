@@ -20,8 +20,7 @@ MonoBehaviour:
       Y: 10
     linkingRules: 000000000100000002000000
     cellsInLevel: 27d9064af164ee0e1b8c56064d343e5452ea2f36
-  gridViewConfigurationData: {fileID: 11400000, guid: ed882d67eae9a0841a99762add24ef3b,
-    type: 2}
+  gridViewSettings: {fileID: 11400000, guid: ed882d67eae9a0841a99762add24ef3b, type: 2}
   scoreValuesData: {fileID: 11400000, guid: 09acb291c3e96374192d4f662c1884db, type: 2}
   endLevelData:
     successConditions:

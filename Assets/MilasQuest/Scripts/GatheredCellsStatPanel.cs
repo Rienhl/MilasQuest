@@ -1,4 +1,5 @@
-﻿using MilasQuest.GameData;
+﻿using DG.Tweening;
+using MilasQuest.GameData;
 using MilasQuest.Stats;
 using TMPro;
 using UnityEngine;
@@ -11,11 +12,44 @@ namespace MilasQuest.UI
         [SerializeField] private TMP_Text txt_targetValue;
         [SerializeField] private Image img_cellIcon;
 
+        private RectTransform _imageRectTransform;
+        private float _targetDifference;
+        private Sequence _sequence;
+
         public void Setup(GatheredCellsStat stat, float targetValue)
         {
             base.Setup(stat);
             img_cellIcon.sprite = CellDataProvider.Instance.GetCellTypeData(stat.CellType).sprite;
             txt_targetValue.text =  targetValue.ToString("F0");
+            _imageRectTransform = img_cellIcon.GetComponent<RectTransform>();
+        }
+
+        public Vector3 GetImagePosition()
+        {
+            //Uncomment if he UI canvas gets changed to Screen Space - Overlay 
+            //return Camera.main.ViewportToWorldPoint(Camera.main.ScreenToViewportPoint(_imageRectTransform.position));
+            return _imageRectTransform.position;
+        }
+
+        public void DoAnim()
+        {
+            if (_targetDifference < _storedStat.CurrentValue)
+            {
+                _targetDifference++;
+                AnimateUI(_targetDifference.ToString("F0"));
+            }
+        }
+
+        protected override void HandleStatUpdated(Stat stat)
+        {
+            _targetDifference = stat.PrevValue;
+        }
+
+        protected override void AnimateUI(string newValue)
+        {
+            img_cellIcon.transform.DOComplete();
+            img_cellIcon.transform.DOPunchScale(Vector3.one * 0.2f, 0.3f, 5, 0.3f);
+            base.AnimateUI(newValue);
         }
 
     }

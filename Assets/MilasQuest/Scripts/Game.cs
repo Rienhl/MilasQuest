@@ -5,6 +5,7 @@ using MilasQuest.Pools;
 using MilasQuest.Stats;
 using MilasQuest.UI;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -22,9 +23,6 @@ namespace MilasQuest
         private GridInputConversor _gridInputConversor;
         private GridState _grid;
         private LevelStats _levelStats;
-        private ScoreSolver _scoreSolver;
-
-        private StatModifier _moveConsumedModifier;
 
         private void Start()
         {
@@ -32,16 +30,23 @@ namespace MilasQuest
             {
                 Pool.CreatePool(_pools[i]);
             }
+            _inputHandler = SolveInputHandler();
+
+            _levelStats = new LevelStats(_levelData.endLevelData, _levelData.scoreValuesData);
+            statsPanel.Setup(_levelStats);
+
             _grid = new GridState(_levelData.gridConfigurationData);
             _grid.OnStartedUpdatingGrid += HandleOnStartedUpdatingGrid;
-            gridView.Init(_grid, _levelData.gridViewConfigurationData);
-            _inputHandler = SolveInputHandler();
+            StartCoroutine(WaitFrameAndContinueSetup());
+        }
+
+        private IEnumerator WaitFrameAndContinueSetup()
+        {
+            yield return new WaitForEndOfFrame();
+            gridView.Setup(_grid, _levelData.gridViewSettings, statsPanel.ActiveGatheredCellsPanels);
             _gridInputConversor = new GridInputConversor(_inputHandler, gridView, Camera.main);
             _gridInputConversor.Enable(true);
             RegisterGridInputActions();
-            _levelStats = new LevelStats(_levelData.endLevelData, _levelData.scoreValuesData);
-            _moveConsumedModifier = new StatModifier() { targetStat = STAT_TYPE.TOTAL_MOVES, operation = ARITHMETIC_OPERATOR.ADD, value = 1 };
-            statsPanel.Setup(_levelStats);
         }
 
         private void RegisterGridInputActions()

@@ -3,6 +3,7 @@ using UnityEngine;
 using DG.Tweening;
 using MilasQuest.Pools;
 using MilasQuest.Grids.GameData;
+using System.ComponentModel;
 
 namespace MilasQuest.Grids
 {
@@ -19,13 +20,16 @@ namespace MilasQuest.Grids
         private bool _eventsRegistered;
         private bool _isVisible;
         private Vector3 _originScale;
+        private Vector3 _originGlowScale;
 
         public Action<CellView> OnCellIndexUpdated;
+        public Action<CellView> OnDestroyed;
 
         public void Init(Cell cell)
         {
             this.Cell = cell;
             _originScale = transform.localScale;
+            _originGlowScale = glow.transform.localScale;
             if (cellSprite == null)
                 cellSprite = GetComponent<SpriteRenderer>();
             cellSprite.sprite = cell.CellType.sprite;
@@ -69,17 +73,27 @@ namespace MilasQuest.Grids
         {
             glow.transform.DOKill();
             glow.DOFade(0, 0.2f).OnComplete(() => { glow.DOKill(); glow.gameObject.SetActive(false); });
+            glow.transform.localScale = _originGlowScale;
             transform.DOKill();
             transform.localRotation = Quaternion.identity;
             transform.localScale = _originScale;
             cellSprite.DOFade(originColor.a, 0.3f);
         }
 
-        public void DestroyCell(float delay = 0, Action OnDestroyed = null)
+        public void DestroyCell(Vector3 targetPosition, float delay = 0)
         {
             this.transform.DOKill();
             UnregisterViewListeners();
-            this.transform.DOScale(0, 0.3f).SetEase(Ease.InBack).SetDelay(delay).OnComplete(() => { HandleOnCellUnselected();  OnDestroyed?.Invoke(); GetComponent<PoolObject>().Despawn(); });
+            if (targetPosition != default)
+            {
+                Debug.Log(targetPosition);
+                cellSprite.sortingOrder++;
+                glow.transform.DOScale(2, 0.3f);
+                glow.DOFade(0, 0.3f);
+                transform.DOMove(new Vector3(targetPosition.x, targetPosition.y, transform.position.z), 0.7f).SetEase(Ease.InQuad).SetDelay(delay).OnComplete(() => { cellSprite.sortingOrder--; HandleOnCellUnselected(); OnDestroyed?.Invoke(this); GetComponent<PoolObject>().Despawn(); });
+            }
+            else
+                this.transform.DOScale(0, 0.3f).SetEase(Ease.InBack).SetDelay(delay).OnComplete(() => { HandleOnCellUnselected(); OnDestroyed?.Invoke(this); GetComponent<PoolObject>().Despawn(); });
         }
 
         private void HandleOnIndexUpdated()

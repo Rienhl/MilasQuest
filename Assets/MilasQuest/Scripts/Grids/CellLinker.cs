@@ -1,4 +1,5 @@
 ﻿using MilasQuest.Grids.LinkableRules;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -8,6 +9,9 @@ namespace MilasQuest.Grids
     {
         public List<Cell> LinkedCells { get; private set; }
         private List<ILinkableRule> _linkingRules;
+
+        public Action<Cell> OnCellLinked;
+        public Action<Cell> OnCellUnlinked;
 
         public CellLinker(PointInt2D gridDimensions, CELL_LINKING_RULE[] conditions)
         {
@@ -49,12 +53,14 @@ namespace MilasQuest.Grids
                 case CELL_EVALUATION_OUTPUT.ADD:
                     newCell.SetAsSelected(true, updateView);
                     LinkedCells.Add(newCell);
+                    OnCellLinked?.Invoke(newCell);
                     return true;
                 case CELL_EVALUATION_OUTPUT.DONT_ADD:
                     break;
                 case CELL_EVALUATION_OUTPUT.REMOVE_PREVIOUS:
                     LinkedCells[LinkedCells.Count - 1].SetAsSelected(false, updateView);
                     LinkedCells.RemoveAt(LinkedCells.Count - 1);
+                    OnCellUnlinked?.Invoke(newCell);
                     break;
                 default:
                     break;

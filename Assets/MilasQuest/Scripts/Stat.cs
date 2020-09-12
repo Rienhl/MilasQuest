@@ -8,9 +8,9 @@ namespace MilasQuest.Stats
         public float CurrentValue { get; protected set; }
         public float MinValue { get; protected set; }
         public float MaxValue { get; protected set; }
+        public float PrevValue { get; private set; }
         public STAT_TYPE StatType { get; private set; }
 
-        private float _prevValue;
 
         public Action<Stat> OnStatUpdated;
         public Action<Stat> OnStatReachedMin;
@@ -26,7 +26,7 @@ namespace MilasQuest.Stats
 
         public void DoOperation(ARITHMETIC_OPERATOR operation, float value)
         {
-            _prevValue = CurrentValue;
+            PrevValue = CurrentValue;
             switch (operation)
             {
                 case ARITHMETIC_OPERATOR.ADD:
@@ -42,7 +42,7 @@ namespace MilasQuest.Stats
                     break;
             }
 
-            if (CurrentValue == _prevValue)
+            if (CurrentValue == PrevValue)
                 return;
 
             OnOperationDone();

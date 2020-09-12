@@ -19,7 +19,7 @@ namespace MilasQuest.Grids
         //This is recommended both by Unity and Microsoft. (More info: https://docs.unity3d.com/Manual/BestPracticeUnderstandingPerformanceInUnity8.html)
         public Cell[][] Cells { get; private set; }
 
-        private GridConfigurationData _gridConfigurationData;
+        private GridSettings _gridConfigurationData;
         private CellLinker _cellLinker;
         private CellTypeData[] _cellsInLevel;
 
@@ -27,25 +27,21 @@ namespace MilasQuest.Grids
 
         public Action<Cell> OnCellAdded;
         public Action<Cell> OnCellRemoved;
+        public Action<Cell> OnCellLinked;
+        public Action<Cell> OnCellUnlinked;
         public Action<List<Cell>> OnStartedUpdatingGrid;
         public Action OnGridUpdated;
 
-        public GridState(GridConfigurationData gridconfigurationData)
+        public GridState(GridSettings gridconfigurationData)
         {
             _gridConfigurationData = gridconfigurationData;
-            this.Dimension = gridconfigurationData.gridDimension;
+            Dimension = _gridConfigurationData.gridDimension;
             GetCellsInLevelDatas();
             GenerateGrid();
-            _cellLinker = new CellLinker(Dimension, _gridConfigurationData.linkingRules);
-        }
 
-        private void GetCellsInLevelDatas()
-        {
-            _cellsInLevel = new CellTypeData[_gridConfigurationData.cellsInLevel.Length];
-            for (int i = 0; i < _cellsInLevel.Length; i++)
-            {
-                _cellsInLevel[i] = CellDataProvider.Instance.GetCellTypeData(_gridConfigurationData.cellsInLevel[i]);
-            }
+            _cellLinker = new CellLinker(Dimension, _gridConfigurationData.linkingRules);
+            _cellLinker.OnCellLinked += HandleOnCellLinked;
+            _cellLinker.OnCellUnlinked += HandleOnCellUnlinked;
         }
 
         public bool AddCellAtPoint(PointInt2D point)
@@ -53,6 +49,11 @@ namespace MilasQuest.Grids
             if (GridUtils.IsPointOutOfGridBounds(point, Dimension.X, Dimension.Y))
                 return false;
             return _cellLinker.AddCell(Cells[point.X][point.Y]);
+        }
+
+        public List<Cell> GetCurrentLink()
+        {
+            return _cellLinker.LinkedCells;
         }
 
         public bool ProcessCurrentLink()
@@ -89,6 +90,15 @@ namespace MilasQuest.Grids
             }
         }
 
+        private void GetCellsInLevelDatas()
+        {
+            _cellsInLevel = new CellTypeData[_gridConfigurationData.cellsInLevel.Length];
+            for (int i = 0; i < _cellsInLevel.Length; i++)
+            {
+                _cellsInLevel[i] = CellDataProvider.Instance.GetCellTypeData(_gridConfigurationData.cellsInLevel[i]);
+            }
+        }
+
         private CellTypeData GetRandomCell()
         {
             return _cellsInLevel[UnityEngine.Random.Range(0, _cellsInLevel.Length)];
@@ -115,12 +125,25 @@ namespace MilasQuest.Grids
             Cells[cell.Index.X][Dimension.Y - 1] = new Cell(cell.Index.X, Dimension.Y - 1, GetRandomCell());
             OnCellAdded?.Invoke(Cells[cell.Index.X][Dimension.Y - 1]);
         }
+        
+        private void HandleOnCellLinked(Cell cell)
+        {
+            OnCellLinked?.Invoke(cell);
+        }
+
+        private void HandleOnCellUnlinked(Cell cell)
+        {
+            OnCellUnlinked?.Invoke(cell);
+        }
 
         #region Deadlock
         private bool IsGridDeadlocked()
         {
             List<Cell> openList = new List<Cell>();
             List<Cell> closedList = new List<Cell>();
+
+            _cellLinker.OnCellLinked-= HandleOnCellLinked;
+            _cellLinker.OnCellUnlinked -= HandleOnCellUnlinked;
 
             _cellLinker.RemoveRule(CELL_LINKING_RULE.IS_NEIGHBOUR_TO_LAST);
 
@@ -144,6 +167,8 @@ namespace MilasQuest.Grids
                     {
                         _cellLinker.AddRule(CELL_LINKING_RULE.IS_NEIGHBOUR_TO_LAST);
                         _cellLinker.ClearLink();
+                        _cellLinker.OnCellLinked += HandleOnCellLinked;
+                        _cellLinker.OnCellUnlinked += HandleOnCellUnlinked;
                         return false;
                     }
                 }
@@ -190,7 +215,7 @@ namespace MilasQuest.Grids
         }
         #endregion
 
-        public void ShuffleBoard()
+        private void ShuffleBoard()
         {
             List<PointInt2D> allIndices = new List<PointInt2D>();
             for (int x = 0; x < Dimension.X; x++)

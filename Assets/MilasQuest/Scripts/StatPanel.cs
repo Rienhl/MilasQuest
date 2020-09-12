@@ -23,10 +23,16 @@ namespace MilasQuest.UI
             _storedStat.OnStatUpdated -= HandleStatUpdated;
         }
 
-        private void HandleStatUpdated(Stat stat)
+        protected virtual void HandleStatUpdated(Stat stat)
         {
-            txt_statValue.transform.DOPunchScale(Vector3.one * 0.5f, 0.5f, 5, 0.3f);
-            txt_statValue.text = stat.CurrentValue.ToString("F0");
+            AnimateUI(stat.CurrentValue.ToString("F0"));
+        }
+
+        protected virtual void AnimateUI(string newValue)
+        {
+            txt_statValue.transform.DOComplete();
+            txt_statValue.transform.DOPunchScale(Vector3.one * 0.5f, 0.3f, 5, 0.3f);
+            txt_statValue.text = newValue;
         }
     }
 }
