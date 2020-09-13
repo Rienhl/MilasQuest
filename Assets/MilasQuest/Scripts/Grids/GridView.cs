@@ -162,6 +162,11 @@ namespace MilasQuest.Grids
         private void HandleOnGridUpdated()
         {
             RemoveLinkView();
+            if (_removalQueue.Count == 0)
+            {
+                MoveCells();
+                return;
+            }
             _cellsToRemove = _removalQueue.Count;
             while (_removalQueue.Count > 0)
             {

@@ -4585,6 +4585,7 @@ MonoBehaviour:
   levelDatas:
   - {fileID: 11400000, guid: 3db405842b4d4c04a9f51fae4c3753c2, type: 2}
   - {fileID: 11400000, guid: cbec16516d26b0c4f8f4ba9c220e63fb, type: 2}
+  - {fileID: 11400000, guid: 1e86986ca84f2d243bd379c8a2779283, type: 2}
   mainMenuPanel: {fileID: 1352353549}
   levelPassedPanel: {fileID: 1675482704}
   levelFailedPanel: {fileID: 394796642}
@@ -6753,7 +6754,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0.4, y: 1}
-  m_AnchoredPosition: {x: 10.029709, y: 0}
+  m_AnchoredPosition: {x: 10.030563, y: 0}
   m_SizeDelta: {x: -60, y: -40}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1962850135
@@ -7272,7 +7273,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0.4, y: 1}
-  m_AnchoredPosition: {x: 10.029709, y: 0}
+  m_AnchoredPosition: {x: 10.030563, y: 0}
   m_SizeDelta: {x: -60, y: -40}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &2105548391

@@ -17,9 +17,9 @@ MonoBehaviour:
   gridConfigurationData:
     gridDimension:
       X: 4
-      Y: 7
+      Y: 5
     linkingRules: 000000000100000002000000
-    cellsInLevel: 27d9064af164ee0e1b8c5606
+    cellsInLevel: 27d9064a52ea2f361b8c5606
   gridViewSettings: {fileID: 11400000, guid: ed882d67eae9a0841a99762add24ef3b, type: 2}
   scoreValuesData: {fileID: 11400000, guid: 09acb291c3e96374192d4f662c1884db, type: 2}
   endLevelData:
@@ -27,17 +27,9 @@ MonoBehaviour:
       generalConditions:
       - statType: 3
         relationalOperator: 4
-        targetValue: 10
-      gatheredCellsConditions:
-      - statType: 2
-        relationalOperator: 4
-        targetValue: 1
-        cellType: 1241962791
-      - statType: 2
-        relationalOperator: 4
-        targetValue: 1
-        cellType: 250504433
+        targetValue: 100
+      gatheredCellsConditions: []
     failureConditions:
     - statType: 0
       relationalOperator: 4
-      targetValue: 30
+      targetValue: 100

@@ -16,7 +16,8 @@ namespace MilasQuest.Grids
 
         //Jagged Arrays performance in tight loops outweigh the readability provided by Multidimensional Arrays.
         //This is recommended both by Unity and Microsoft. (More info: https://docs.unity3d.com/Manual/BestPracticeUnderstandingPerformanceInUnity8.html)
-        //Even though the performance benefits are trivial in match 3 games, it is good practice help fight memory fragmentation
+        //This increased performance is trivial in match3 type games, and the whole grid system should be abstracted.
+        //Anyways, going with jagged arrays was decided as a way of getting the developers familiarized with them. 
         public Cell[][] Cells { get; private set; }
 
         private GridSettings _gridConfigurationData;
@@ -175,7 +176,6 @@ namespace MilasQuest.Grids
             }
             _cellLinker.AddRule(CELL_LINKING_RULE.IS_NEIGHBOUR_TO_LAST);
             _cellLinker.ClearLink();
-            Debug.Log("DEADLOCK!");
             return true;
         }
 

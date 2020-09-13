@@ -1,6 +1,7 @@
 ﻿
 using MilasQuest.Stats;
 using System;
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
 
@@ -9,6 +10,7 @@ namespace MilasQuest.GameData
     [CustomEditor(typeof(LevelData))]
     public class LevelDataEditor : BaseDataEditor
     {
+        LevelData levelData;
         EndLevelData endLevelData;
         Vector2 successConditionsScrollPos;
         Vector2 failureConditionsScrollPos;
@@ -16,13 +18,19 @@ namespace MilasQuest.GameData
         protected override void DoEnable()
         {
             base.DoEnable();
-            endLevelData = (target as LevelData).endLevelData;
+            levelData = target as LevelData;
+            endLevelData = levelData.endLevelData;
         }
 
         public override void OnInspectorGUI()
         {
             base.OnInspectorGUI();
             DrawDefaultInspector();
+            if ((levelData.gridConfigurationData.gridDimension.X * levelData.gridConfigurationData.gridDimension.Y) < (levelData.gridConfigurationData.cellsInLevel.Length * 2))
+            {
+                EditorGUILayout.HelpBox("Too many cell types for this grid's size. This will generate game locking conditions too often. Please increase grid size or remove cell types.", MessageType.Error);
+                GUI.enabled = false;
+            }
             EditorGUILayout.Space();
             EditorGUILayout.BeginVertical(EditorStyles.helpBox);
             EditorGUILayout.BeginHorizontal("Box");

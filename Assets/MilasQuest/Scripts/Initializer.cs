@@ -39,7 +39,6 @@ namespace MilasQuest
 
         private void HandleOnLevelSelected(int selectedLevelIndex)
         {
-            Debug.Log("selected " + selectedLevelIndex);
             _currentLevelIndex = selectedLevelIndex;
             levelController.SetupLevel(_inputHandler, levelDatas[_currentLevelIndex]);
             levelController.OnSuccess += HandleOnLevelSuccess;
@@ -71,7 +70,6 @@ namespace MilasQuest
         {
             levelPassedPanel.OnContinue -= LoadNextLevel;
             levelController.ResetLevel();
-            Debug.Log(_currentLevelIndex);
             levelController.SetupLevel(_inputHandler, levelDatas[_currentLevelIndex]);
             levelController.OnSuccess += HandleOnLevelSuccess;
             levelController.OnFailure += HandleOnLevelFailure;

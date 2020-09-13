@@ -1,6 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using MilasQuest.Stats;
+using System.Collections.Generic;
 
-namespace MilasQuest.Stats
+namespace MilasQuest.GameData
 {
     [System.Serializable]
     public class EndLevelSuccessData

@@ -1,4 +1,5 @@
-﻿using MilasQuest.Grids;
+﻿using MilasQuest.GameData;
+using MilasQuest.Grids;
 using System;
 using System.Collections.Generic;
 using System.Linq;

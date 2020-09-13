@@ -1,4 +1,6 @@
-﻿namespace MilasQuest.Stats
+﻿using MilasQuest.Stats;
+
+namespace MilasQuest.GameData
 {
     [System.Serializable]
     public class GeneralStatConditionData
