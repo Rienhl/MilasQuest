@@ -7,20 +7,21 @@ namespace MilasQuest.UI
 {
     public class StatPanel : MonoBehaviour
     {
-        [SerializeField] private TMP_Text txt_statValue;
+        [SerializeField] protected TMP_Text txt_statValue;
 
         protected Stat _storedStat;
 
-        public void Setup(Stat stat)
+        public void Setup(Stat stat, bool invertValue = false)
         {
             _storedStat = stat;
-            txt_statValue.text = stat.CurrentValue.ToString("F0");
+            txt_statValue.text = invertValue ?(stat.MaxValue - stat.CurrentValue).ToString("F0") : stat.CurrentValue.ToString("F0");
             _storedStat.OnStatUpdated += HandleStatUpdated;
         }
 
-        public void Unsetup()
+        public virtual void Unsetup()
         {
-            _storedStat.OnStatUpdated -= HandleStatUpdated;
+            if (_storedStat != null)
+                _storedStat.OnStatUpdated -= HandleStatUpdated;
         }
 
         protected virtual void HandleStatUpdated(Stat stat)

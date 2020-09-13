@@ -8,8 +8,7 @@ using UnityEngine;
 namespace MilasQuest.Grids
 {
     /// <summary>
-    /// Logical Layer of the Grid, contains its model and state (MVC)
-    /// independent from cell size, sprites, grid position in the world, etc...
+    /// Logical Layer of the Grid, contains its model and state independent from cell size, sprites, grid position in the world, etc...
     /// </summary>
     public class GridState //this class should be split into model/controller classes 
     {
@@ -17,6 +16,7 @@ namespace MilasQuest.Grids
 
         //Jagged Arrays performance in tight loops outweigh the readability provided by Multidimensional Arrays.
         //This is recommended both by Unity and Microsoft. (More info: https://docs.unity3d.com/Manual/BestPracticeUnderstandingPerformanceInUnity8.html)
+        //Even though the performance benefits are trivial in match 3 games, it is good practice help fight memory fragmentation
         public Cell[][] Cells { get; private set; }
 
         private GridSettings _gridConfigurationData;
@@ -29,6 +29,7 @@ namespace MilasQuest.Grids
         public Action<Cell> OnCellRemoved;
         public Action<Cell> OnCellLinked;
         public Action<Cell> OnCellUnlinked;
+        public Action OnLinkCleared;
         public Action<List<Cell>> OnStartedUpdatingGrid;
         public Action OnGridUpdated;
 
@@ -56,16 +57,15 @@ namespace MilasQuest.Grids
             return _cellLinker.LinkedCells;
         }
 
-        public bool ProcessCurrentLink()
+        public void ProcessCurrentLink()
         {
             if (_cellLinker.LinkedCells.Count >= _CHAIN_MIN_CELL_COUNT) //this should be managed by a chainender condition
             {
                 RemoveCells(_cellLinker.LinkedCells);
                 _cellLinker.ClearLink();
-                return true;
             }
             _cellLinker.ClearLink();
-            return false;
+            OnLinkCleared?.Invoke();
         }
 
         public void CheckForDeadlock()

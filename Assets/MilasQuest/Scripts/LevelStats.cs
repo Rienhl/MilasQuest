@@ -71,7 +71,10 @@ namespace MilasQuest.Stats
             List<EndLevelCondition> conditions = new List<EndLevelCondition>();
             for (int i = 0; i < conditionDatas.Count; i++)
             {
-                conditions.Add(new EndLevelCondition(Stats[conditionDatas[i].statType], conditionDatas[i].relationalOperator, conditionDatas[i].targetValue));
+                if (conditionDatas[i].statType == STAT_TYPE.TOTAL_MOVES && movesMultiplier == -1) //if we are counting down from total moves, we have to change the runtime values for the end condition
+                    conditions.Add(new EndLevelCondition(Stats[conditionDatas[i].statType], RELATIONAL_OPERATOR.LESS_OR_EQUAL_TO, 0));
+                else
+                    conditions.Add(new EndLevelCondition(Stats[conditionDatas[i].statType], conditionDatas[i].relationalOperator, conditionDatas[i].targetValue));
             }
             return conditions;
         }
@@ -81,6 +84,7 @@ namespace MilasQuest.Stats
             List<EndLevelCondition> conditions = new List<EndLevelCondition>();
             for (int i = 0; i < conditionDatas.Count; i++)
             {
+                GatheredCells[conditionDatas[i].cellType].SetMaxValue(conditionDatas[i].targetValue);
                 conditions.Add(new EndLevelCondition(GatheredCells[conditionDatas[i].cellType], conditionDatas[i].relationalOperator, conditionDatas[i].targetValue));
             }
             return conditions;

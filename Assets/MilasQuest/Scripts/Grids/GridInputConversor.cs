@@ -19,11 +19,21 @@ namespace MilasQuest.Grids
         public Action<PointInt2D> OnGridInputEnded;
         public Action OnGridInputCancelled;
 
-        public GridInputConversor(InputHandler inputHandler, GridView gridView, Camera gridCam)
+        public GridInputConversor(InputHandler inputHandler, Camera gridCam) 
         {
             _inputHandler = inputHandler;
-            _gridView = gridView;
             _cam = gridCam;
+        }
+
+        public void SetGridView(GridView gridView)
+        {
+            _gridView = gridView;
+        }
+
+        public void Unsetup()
+        {
+            _gridView = null;
+            Enable(false);
         }
 
         public void Enable(bool enable)

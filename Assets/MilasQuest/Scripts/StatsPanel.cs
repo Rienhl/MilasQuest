@@ -5,6 +5,7 @@ using UnityEngine;
 
 namespace MilasQuest.UI
 {
+
     public class StatsPanel : MonoBehaviour
     {
         [SerializeField] StatPanel statPanel_score;
@@ -17,7 +18,12 @@ namespace MilasQuest.UI
         {
             statPanel_score.Setup(levelStats.Stats[STAT_TYPE.TOTAL_SCORE]);
             statPanel_totalMoves.Setup(levelStats.Stats[STAT_TYPE.TOTAL_MOVES]);
-            ActiveGatheredCellsPanels = new Dictionary<int, GatheredCellsStatPanel>();
+
+            if (ActiveGatheredCellsPanels == null)
+                ActiveGatheredCellsPanels = new Dictionary<int, GatheredCellsStatPanel>();
+            else
+                ActiveGatheredCellsPanels.Clear();
+
             int currentIndex = 0;
             foreach (GatheredCellsStat stat in levelStats.GatheredCells.Values)
             {
@@ -27,7 +33,7 @@ namespace MilasQuest.UI
                     return;
                 }
                 statPanels_gatheredCells[currentIndex].gameObject.SetActive(true);
-                statPanels_gatheredCells[currentIndex].Setup(stat, 10);
+                statPanels_gatheredCells[currentIndex].Setup(stat, stat.MaxValue);
                 ActiveGatheredCellsPanels.Add((int)stat.CellType, statPanels_gatheredCells[currentIndex]);
                 currentIndex++;
             }

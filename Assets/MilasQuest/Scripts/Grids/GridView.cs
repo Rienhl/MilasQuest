@@ -38,7 +38,11 @@ namespace MilasQuest.Grids
 
         public void Setup(GridState grid, GridViewSettings gridViewSettings, Dictionary<int, GatheredCellsStatPanel> gatheredCellsPanels)
         {
-            _removalQueue = new Queue<CellView>();
+            if (_removalQueue == null)
+                _removalQueue = new Queue<CellView>();
+            else
+                _removalQueue.Clear();
+
             _removedCellsTargetPositions = gatheredCellsPanels;
 
             _gridViewSettings = gridViewSettings;
@@ -55,6 +59,8 @@ namespace MilasQuest.Grids
 
             _gridState.OnCellLinked += HandleOnCellLinked;
             _gridState.OnCellUnlinked += HandleOnCellUnlinked;
+            _gridState.OnLinkCleared += HandleOnLinkCleared;
+
 
             SpawnGridCells();
             SpawnBackground();
@@ -68,6 +74,9 @@ namespace MilasQuest.Grids
 
             _gridState.OnCellLinked -= HandleOnCellLinked;
             _gridState.OnCellUnlinked -= HandleOnCellUnlinked;
+            _gridState.OnLinkCleared -= HandleOnLinkCleared;
+
+            DespawnGridCells();
         }
 
         private void SpawnBackground()
@@ -98,6 +107,18 @@ namespace MilasQuest.Grids
             }
         }
 
+        private void DespawnGridCells()
+        {
+            for (int i = _cellViews.Count - 1; i >= 0; i--)
+            {
+                _cellViews[i].Unsetup();
+            }
+            for (int i = _backgroundTiles.Length - 1; i >= 0; i--)
+            {
+                _backgroundTiles[i].GetComponent<PoolObject>().Despawn();
+            }
+        }
+
         private void DropAllCellsIntoGrid()
         {
             for (int i = 0; i < _cellViews.Count - 1; i++)
@@ -112,7 +133,7 @@ namespace MilasQuest.Grids
             CellView cellView = Pool.GetPool(_gridViewSettings.cellPoolData).Spawn(this.transform).GetComponent<CellView>();
             cellView.transform.localPosition = GetLocalPositionFromIndex(new PointInt2D() { X = cell.Index.X, Y = _gridState.Cells[cell.Index.X].Length + 1 });
             cellView.transform.localScale = Vector3.one * _gridViewSettings.cellSize * _gridViewSettings.cellContentScale;
-            cellView.Init(cell);
+            cellView.Setup(cell);
             cellView.gameObject.name = "Cell " + cellView.Cell.Index.ToString();
             cellView.OnCellIndexUpdated += HandleOnCellIndexUpdated;
             _cellViews.Add(cellView);
@@ -215,6 +236,11 @@ namespace MilasQuest.Grids
         private void HandleOnCellUnlinked(Cell cell)
         {
             UpdateLinkView();
+        }
+
+        private void HandleOnLinkCleared()
+        {
+            RemoveLinkView();
         }
 
         private void UpdateLinkView()

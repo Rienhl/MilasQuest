@@ -24,6 +24,16 @@ namespace MilasQuest.Stats
             MaxValue = maxValue;
         }
 
+        public void SetMinValue(float minValue)
+        {
+            MinValue = minValue;
+        }
+
+        public void SetMaxValue(float maxValue)
+        {
+            MaxValue = maxValue;
+        }
+
         public void DoOperation(ARITHMETIC_OPERATOR operation, float value)
         {
             PrevValue = CurrentValue;

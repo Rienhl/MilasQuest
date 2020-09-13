@@ -1,52 +1,68 @@
 ﻿using MilasQuest.GameData;
 using MilasQuest.Grids;
 using MilasQuest.InputManagement;
-using MilasQuest.Pools;
 using MilasQuest.Stats;
 using MilasQuest.UI;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 namespace MilasQuest
 {
-    public class Game : MonoBehaviour
+    public class LevelController : MonoBehaviour
     {
+        public Action OnSuccess;
+        public Action OnFailure;
+
         [SerializeField] private StatsPanel statsPanel;
-
         [SerializeField] private GridView gridView;
-        [SerializeField] private PoolData[] _pools;
-        [SerializeField] private LevelData _levelData;
 
-        private InputHandler _inputHandler;
         private GridInputConversor _gridInputConversor;
         private GridState _grid;
         private LevelStats _levelStats;
 
-        private void Start()
+        public void SetupLevel(InputHandler inputHandler, LevelData levelData)
         {
-            for (int i = 0; i < _pools.Length; i++)
-            {
-                Pool.CreatePool(_pools[i]);
-            }
-            _inputHandler = SolveInputHandler();
+            _levelStats = new LevelStats(levelData.endLevelData, levelData.scoreValuesData);
+            _levelStats.OnSuccess += HandleOnSuccess;
+            _levelStats.OnFailure += HandleOnFailure;
 
-            _levelStats = new LevelStats(_levelData.endLevelData, _levelData.scoreValuesData);
             statsPanel.Setup(_levelStats);
 
-            _grid = new GridState(_levelData.gridConfigurationData);
+            _grid = new GridState(levelData.gridConfigurationData);
             _grid.OnStartedUpdatingGrid += HandleOnStartedUpdatingGrid;
-            StartCoroutine(WaitFrameAndContinueSetup());
+
+            gridView.Setup(_grid, levelData.gridViewSettings, statsPanel.ActiveGatheredCellsPanels);
+
+            _gridInputConversor = new GridInputConversor(inputHandler, Camera.main);
+            _gridInputConversor.SetGridView(gridView);
+            _gridInputConversor.Enable(true);
+
+            RegisterGridInputActions();
         }
 
-        private IEnumerator WaitFrameAndContinueSetup()
+        public void ResetLevel()
         {
-            yield return new WaitForEndOfFrame();
-            gridView.Setup(_grid, _levelData.gridViewSettings, statsPanel.ActiveGatheredCellsPanels);
-            _gridInputConversor = new GridInputConversor(_inputHandler, gridView, Camera.main);
-            _gridInputConversor.Enable(true);
-            RegisterGridInputActions();
+            UnregisterGridInputActions();
+            gridView.OnGridViewUpdated -= HandleGridViewUpdated;
+            _levelStats.OnSuccess -= HandleOnSuccess;
+            _levelStats.OnFailure -= HandleOnFailure;
+            statsPanel.Unsetup();
+            gridView.Unsetup();
+        }
+
+        private void HandleOnSuccess()
+        {
+            _gridInputConversor.Enable(false);
+            UnregisterGridInputActions();
+            OnSuccess?.Invoke();
+        }
+
+        private void HandleOnFailure()
+        {
+            _gridInputConversor.Enable(false);
+            UnregisterGridInputActions();
+            OnFailure?.Invoke();
         }
 
         private void RegisterGridInputActions()
@@ -96,16 +112,8 @@ namespace MilasQuest
 
         private void HandleOnGridInputCancelled()
         {
+            //This should handle what should happen with the input if the game gets sent to background while input is active (locking the phone, getting a call, etc...)
             throw new NotImplementedException();
-        }
-
-        public InputHandler SolveInputHandler()
-        {
-#if UNITY_EDITOR
-            return gameObject.AddComponent<MouseInputHandler>();
-#else
-            return gameObject.AddComponent<TouchInputHandler>()
-#endif
         }
     }
 }

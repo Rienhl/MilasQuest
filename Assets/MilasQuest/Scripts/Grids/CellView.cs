@@ -15,17 +15,19 @@ namespace MilasQuest.Grids
         public Cell Cell { get; private set; }
         public bool IsCuedForMovement { get; private set; }
 
-        private Color originColor;
         private Vector3 _targetPos;
         private bool _eventsRegistered;
         private bool _isVisible;
+        private Color _originColor;
+        private Color _originGlowColor;
         private Vector3 _originScale;
         private Vector3 _originGlowScale;
+        private PoolObject _poolObject;
 
         public Action<CellView> OnCellIndexUpdated;
         public Action<CellView> OnDestroyed;
 
-        public void Init(Cell cell)
+        public void Setup(Cell cell)
         {
             this.Cell = cell;
             _originScale = transform.localScale;
@@ -33,11 +35,26 @@ namespace MilasQuest.Grids
             if (cellSprite == null)
                 cellSprite = GetComponent<SpriteRenderer>();
             cellSprite.sprite = cell.CellType.sprite;
-            originColor = cellSprite.color;
-            cellSprite.color = new Color(originColor.r, originColor.g, originColor.b, 0);
+            _originColor = cellSprite.color;
+            _originGlowColor = glow.color;
+            cellSprite.color = new Color(_originColor.r, _originColor.g, _originColor.b, 0);
             _eventsRegistered = false;
             _isVisible = false;
+            _poolObject = GetComponent<PoolObject>();
             RegisterViewListeners();
+        }
+
+        public void Unsetup()
+        {
+            UnregisterViewListeners();
+            glow.transform.DOKill();
+            transform.DOKill();
+            transform.localScale = _originScale;
+            transform.localRotation = Quaternion.identity;
+            cellSprite.color = _originColor;
+            glow.transform.localScale = _originGlowScale;
+            glow.color = _originGlowColor;
+            _poolObject.Despawn();
         }
 
         public void RegisterViewListeners()
@@ -77,7 +94,7 @@ namespace MilasQuest.Grids
             transform.DOKill();
             transform.localRotation = Quaternion.identity;
             transform.localScale = _originScale;
-            cellSprite.DOFade(originColor.a, 0.3f);
+            cellSprite.DOFade(_originColor.a, 0.3f);
         }
 
         public void DestroyCell(Vector3 targetPosition, float delay = 0)
@@ -86,14 +103,13 @@ namespace MilasQuest.Grids
             UnregisterViewListeners();
             if (targetPosition != default)
             {
-                Debug.Log(targetPosition);
                 cellSprite.sortingOrder++;
                 glow.transform.DOScale(2, 0.3f);
                 glow.DOFade(0, 0.3f);
-                transform.DOMove(new Vector3(targetPosition.x, targetPosition.y, transform.position.z), 0.7f).SetEase(Ease.InQuad).SetDelay(delay).OnComplete(() => { cellSprite.sortingOrder--; HandleOnCellUnselected(); OnDestroyed?.Invoke(this); GetComponent<PoolObject>().Despawn(); });
+                transform.DOMove(new Vector3(targetPosition.x, targetPosition.y, transform.position.z), 0.7f).SetEase(Ease.InQuad).SetDelay(delay).OnComplete(() => { cellSprite.sortingOrder--; HandleOnCellUnselected(); OnDestroyed?.Invoke(this); _poolObject.Despawn(); });
             }
             else
-                this.transform.DOScale(0, 0.3f).SetEase(Ease.InBack).SetDelay(delay).OnComplete(() => { HandleOnCellUnselected(); OnDestroyed?.Invoke(this); GetComponent<PoolObject>().Despawn(); });
+                this.transform.DOScale(0, 0.3f).SetEase(Ease.InBack).SetDelay(delay).OnComplete(() => { HandleOnCellUnselected(); OnDestroyed?.Invoke(this);_poolObject.Despawn(); });
         }
 
         private void HandleOnIndexUpdated()
@@ -112,7 +128,7 @@ namespace MilasQuest.Grids
             if (!_isVisible)
             {
                 _isVisible = true;
-                cellSprite.DOFade(originColor.a, 0.2f).OnComplete(() => PlayMovement(onCompleteCallback));
+                cellSprite.DOFade(_originColor.a, 0.2f).OnComplete(() => PlayMovement(onCompleteCallback));
                 return;
             }
             if (IsCuedForMovement)
