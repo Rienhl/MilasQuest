@@ -67,6 +67,7 @@ namespace MilasQuest.UI
         {
             for (int i = _levelSelectionPanels.Length - 1; i >= 0; i--)
             {
+                _levelSelectionPanels[i].OnLevelSelected -= HandleOnLevelSelected;
                 _levelSelectionPanels[i].GetComponent<PoolObject>().Despawn();
             }
             _sequence.Complete();

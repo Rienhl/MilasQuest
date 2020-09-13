@@ -39,6 +39,7 @@ namespace MilasQuest
 
         private void HandleOnLevelSelected(int selectedLevelIndex)
         {
+            Debug.Log("selected " + selectedLevelIndex);
             _currentLevelIndex = selectedLevelIndex;
             levelController.SetupLevel(_inputHandler, levelDatas[_currentLevelIndex]);
             levelController.OnSuccess += HandleOnLevelSuccess;
@@ -48,9 +49,13 @@ namespace MilasQuest
 
         private void HandleOnLevelSuccess()
         {
+            levelController.OnSuccess -= HandleOnLevelSuccess;
+            levelController.OnFailure -= HandleOnLevelFailure;
+
             _currentLevelIndex++;
-            PlayerPrefs.SetInt("LEVEL_PROGRESS", _currentLevelIndex);
-            if (_currentLevelIndex >= levelDatas.Length)
+            if (_currentLevelIndex > PlayerPrefs.GetInt("LEVEL_PROGRESS"))
+                PlayerPrefs.SetInt("LEVEL_PROGRESS", _currentLevelIndex);
+            if (_currentLevelIndex >= levelDatas.Length) //if we played through all the levels, we return to the main menu
             {
                 levelPassedPanel.OnContinue += HandleOnExitLevel;
                 levelPassedPanel.Show();
@@ -66,11 +71,17 @@ namespace MilasQuest
         {
             levelPassedPanel.OnContinue -= LoadNextLevel;
             levelController.ResetLevel();
+            Debug.Log(_currentLevelIndex);
             levelController.SetupLevel(_inputHandler, levelDatas[_currentLevelIndex]);
+            levelController.OnSuccess += HandleOnLevelSuccess;
+            levelController.OnFailure += HandleOnLevelFailure;
         }
 
         private void HandleOnLevelFailure()
         {
+            levelController.OnSuccess -= HandleOnLevelSuccess;
+            levelController.OnFailure -= HandleOnLevelFailure;
+
             levelFailedPanel.OnRetryLevel += HandleOnRetryLevel;
             levelFailedPanel.OnExitLevel += HandleOnExitLevel;
             levelFailedPanel.Show();
@@ -84,6 +95,7 @@ namespace MilasQuest
 
         private void HandleOnExitLevel()
         {
+            _currentLevelIndex = 0;
             levelPassedPanel.OnContinue -= HandleOnExitLevel;
             levelFailedPanel.OnExitLevel -= HandleOnExitLevel;
             levelController.ResetLevel();

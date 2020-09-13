@@ -27,15 +27,15 @@ MonoBehaviour:
       generalConditions:
       - statType: 3
         relationalOperator: 4
-        targetValue: 100
+        targetValue: 10
       gatheredCellsConditions:
       - statType: 2
         relationalOperator: 4
-        targetValue: 10
+        targetValue: 1
         cellType: 1241962791
       - statType: 2
         relationalOperator: 4
-        targetValue: 10
+        targetValue: 1
         cellType: 250504433
     failureConditions:
     - statType: 0

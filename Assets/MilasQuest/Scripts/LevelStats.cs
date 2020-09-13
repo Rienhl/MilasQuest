@@ -43,8 +43,10 @@ namespace MilasQuest.Stats
                 InitGatheredCellsStat(endLevelData.successConditions.gatheredCellsConditions[i].cellType);
             }
 
-            _successConditions = InitEndLevelConditions(endLevelData.successConditions.generalConditions);
-            _successConditions = InitEndLevelConditions(endLevelData.successConditions.gatheredCellsConditions);
+            _successConditions = new List<EndLevelCondition>();
+            _successConditions.AddRange(InitEndLevelConditions(endLevelData.successConditions.generalConditions));
+            _successConditions.AddRange(InitEndLevelConditions(endLevelData.successConditions.gatheredCellsConditions));
+
             _failureConditions = InitEndLevelConditions(endLevelData.failureConditions);
 
             _scoreSolver = new ScoreSolver(scoreValuesData);
