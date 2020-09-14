@@ -1,0 +1,43 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 884d0e9f2c3685d4c87d1e5ed70c5d61, type: 3}
+  m_Name: Level_04
+  m_EditorClassIdentifier: 
+  id: -1
+  definedName: 
+  gridViewSettings: {fileID: 11400000, guid: ed882d67eae9a0841a99762add24ef3b, type: 2}
+  scoreValuesData: {fileID: 11400000, guid: 09acb291c3e96374192d4f662c1884db, type: 2}
+  gridConfigurationData:
+    gridDimension:
+      X: 7
+      Y: 7
+    linkingRules: 000000000100000002000000
+    cellsInLevel: 52ea2f3627d9064a1b8c56064d343e54
+  endLevelData:
+    successConditions:
+      generalConditions:
+      - statType: 3
+        relationalOperator: 4
+        targetValue: 240
+      gatheredCellsConditions:
+      - statType: 2
+        relationalOperator: 4
+        targetValue: 25
+        cellType: 909109842
+      - statType: 2
+        relationalOperator: 4
+        targetValue: 25
+        cellType: 106335259
+    failureConditions:
+    - statType: 0
+      relationalOperator: 4
+      targetValue: 12

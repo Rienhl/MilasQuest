@@ -1,0 +1,18 @@
+﻿namespace MilasQuest
+{
+    public class ScoreSolver
+    {
+        private readonly ScoreValuesData _scoreValuesData;
+
+        public ScoreSolver(ScoreValuesData scoreValuesData)
+        {
+            _scoreValuesData = scoreValuesData;
+        }
+
+        public float SolveScore(int pickedCellsCount)
+        {
+            return _scoreValuesData.basicChainScore * (1 + (pickedCellsCount - _scoreValuesData.minLinkCount) * _scoreValuesData.extraChainMultiplier);
+        }
+
+    }
+}

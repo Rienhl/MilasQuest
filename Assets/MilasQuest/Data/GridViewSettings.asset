@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2176ad870ba05584a99e9bf7e2feb55e, type: 3}
+  m_Name: GridViewSettings
+  m_EditorClassIdentifier: 
+  cellSize: 2
+  cellContentScale: 0.7
+  validInputRatio: 0.6
+  cellDestructionDelay: 0.15
+  backgroundConstructionDelay: 0.03
+  cellPoolData: {fileID: 11400000, guid: 4d86de7b328331646b7d13b11e768141, type: 2}
+  backgroundTilesPoolDatas:
+  - {fileID: 11400000, guid: 181d04fd469914042a7d66060c3bcfd2, type: 2}
+  - {fileID: 11400000, guid: 00357a4c12a19f74ea07d281e60ca2b8, type: 2}
