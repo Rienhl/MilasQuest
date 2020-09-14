@@ -16,7 +16,7 @@ namespace MilasQuest.Grids
                 X = Mathf.FloorToInt((input.x - minX) / cellSize),
                 Y = Mathf.FloorToInt((input.y - minY) / cellSize)
             };
-            inputInfo.ratioToCenter = Vector3.Distance(input, new Vector3(minX + cellSize * 0.5f + inputInfo.point.X * cellSize, minY + cellSize * 0.5f + inputInfo.point.Y * cellSize, input.z)) / cellSize * 0.5f;
+            inputInfo.ratioToCenter = Vector3.Distance(input, new Vector3(minX + cellSize * 0.5f + inputInfo.point.X * cellSize, minY + cellSize * 0.5f + inputInfo.point.Y * cellSize, input.z)) / cellSize;
             return inputInfo;
         }
 

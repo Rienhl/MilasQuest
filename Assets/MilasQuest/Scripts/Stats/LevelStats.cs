@@ -1,9 +1,8 @@
 ﻿using MilasQuest.GameData;
-using MilasQuest.Grids;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEngine;
+using System.Security;
 
 namespace MilasQuest.Stats
 {
@@ -17,16 +16,24 @@ namespace MilasQuest.Stats
 
         private readonly List<EndLevelCondition> _successConditions;
         private readonly List<EndLevelCondition> _failureConditions;
-        private ScoreSolver _scoreSolver;
-        private int movesMultiplier = 1;
-
+        private readonly ScoreSolver _scoreSolver;
+        private readonly int movesMultiplier = 1;
+        private int _statsToUpdate = 0;
+        /// <summary>
+        /// Each stat type has different conditions for initialization.
+        /// This should be broken down into smaller classes that handle how we want to manage each stat depending on the level's objectives and fail conditions
+        /// </summary>
+        /// <param name="endLevelData"></param>
+        /// <param name="scoreValuesData"></param>
         public LevelStats (EndLevelData endLevelData, ScoreValuesData scoreValuesData)
         {
             Stats = new Dictionary<STAT_TYPE, Stat>();
             GatheredCells = new Dictionary<CELL_TYPES, GatheredCellsStat>();
 
             InitGeneralStat(STAT_TYPE.TOTAL_SCORE);
-            InitGeneralStat(STAT_TYPE.TOTAL_GATHERED_CELLS);
+            
+            //Initializing the moves stat with a target value means that this level has a limit on the amount of moves
+            //While this might happen always, we could have bonus or tutorial levels with no limit on moves
             GeneralStatConditionData totalMoves = endLevelData.failureConditions.FirstOrDefault(condition => condition.statType == STAT_TYPE.TOTAL_MOVES);
             if (totalMoves != null)
             {
@@ -39,6 +46,10 @@ namespace MilasQuest.Stats
                 InitGeneralStat(STAT_TYPE.TOTAL_MOVES);
             }
 
+            //Total gathered cells is a simple internal stat
+            InitGeneralStat(STAT_TYPE.TOTAL_GATHERED_CELLS);
+
+            //Here we initialize each gathered cell stat that should be tracked on this level
             for (int i = 0; i < endLevelData.successConditions.gatheredCellsConditions.Count; i++)
             {
                 InitGatheredCellsStat(endLevelData.successConditions.gatheredCellsConditions[i].cellType);
@@ -60,13 +71,28 @@ namespace MilasQuest.Stats
                 stat.DoOperation(statModifier.operation, statModifier.value);
             }
         }
+
+        public void ProcessStatModifiers(List<StatModifier> statModifiers)
+        {
+            for (int i = 0; i < statModifiers.Count; i++)
+            {
+                ProcessStatModifier(statModifiers[i]);
+            }
+        }
+
         public void ProcessAction(CELL_TYPES cellType, int count)
         {
-            Stats[STAT_TYPE.TOTAL_GATHERED_CELLS].DoOperation(ARITHMETIC_OPERATOR.ADD, count);
-            Stats[STAT_TYPE.TOTAL_SCORE].DoOperation(ARITHMETIC_OPERATOR.ADD, _scoreSolver.SolveScore(count));
-            Stats[STAT_TYPE.TOTAL_MOVES].DoOperation(ARITHMETIC_OPERATOR.ADD, movesMultiplier);
+            List<StatModifier> statModifiers = new List<StatModifier>();
+            statModifiers.Add(new StatModifier() { targetStat = STAT_TYPE.TOTAL_GATHERED_CELLS, operation = ARITHMETIC_OPERATOR.ADD, value = count });
+            statModifiers.Add(new StatModifier() { targetStat = STAT_TYPE.TOTAL_SCORE, operation = ARITHMETIC_OPERATOR.ADD, value = _scoreSolver.SolveScore(count) });
+            statModifiers.Add(new StatModifier() { targetStat = STAT_TYPE.TOTAL_MOVES, operation = ARITHMETIC_OPERATOR.ADD, value = movesMultiplier });
+            _statsToUpdate = 3;
             if (GatheredCells.TryGetValue(cellType, out GatheredCellsStat stat))
+            {
+                _statsToUpdate++;
                 stat.DoOperation(ARITHMETIC_OPERATOR.ADD, count);
+            }
+            ProcessStatModifiers(statModifiers);
         }
 
         private List<EndLevelCondition> InitEndLevelConditions(List<GeneralStatConditionData> conditionDatas)
@@ -75,9 +101,12 @@ namespace MilasQuest.Stats
             for (int i = 0; i < conditionDatas.Count; i++)
             {
                 if (conditionDatas[i].statType == STAT_TYPE.TOTAL_MOVES && movesMultiplier == -1) //if we are counting down from total moves, we have to change the runtime values for the end condition
-                    conditions.Add(new EndLevelCondition(Stats[conditionDatas[i].statType], RELATIONAL_OPERATOR.LESS_OR_EQUAL_TO, 0));
+                    conditions.Add(new EndLevelCondition(Stats[STAT_TYPE.TOTAL_MOVES], RELATIONAL_OPERATOR.LESS_OR_EQUAL_TO, 0));
                 else
                     conditions.Add(new EndLevelCondition(Stats[conditionDatas[i].statType], conditionDatas[i].relationalOperator, conditionDatas[i].targetValue));
+
+                if (conditionDatas[i].statType == STAT_TYPE.TOTAL_SCORE) //if we have a condition data targeting our score, add that value as the max value of our score stat
+                    Stats[STAT_TYPE.TOTAL_SCORE].SetMaxValue(conditionDatas[i].targetValue);
             }
             return conditions;
         }
@@ -115,6 +144,9 @@ namespace MilasQuest.Stats
 
         private void CheckEndLevelConditions()
         {
+            _statsToUpdate--;
+            if (_statsToUpdate > 0)
+                return;
             for (int i = _successConditions.Count - 1; i >= 0; i--)
             {
                 if (_successConditions[i].Evaluate())

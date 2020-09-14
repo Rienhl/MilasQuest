@@ -2,7 +2,7 @@
 
 namespace MilasQuest.Pools
 {
-    [CreateAssetMenu(fileName = "New Pool Data", menuName = "MilasQuest/Data/Pool")]
+    [CreateAssetMenu(fileName = "New Pool Data", menuName = "MilasQuest/Data/Create New Object Pool Data")]
     public class PoolData : ScriptableObject
     {
         public GameObject prefab;

@@ -1,7 +1,6 @@
 ﻿using DG.Tweening;
 using MilasQuest.GameData;
 using MilasQuest.Stats;
-using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;

@@ -11,10 +11,10 @@ namespace MilasQuest.UI
 
         protected Stat _storedStat;
 
-        public void Setup(Stat stat, bool invertValue = false)
+        public virtual void Setup(Stat stat, bool invertValue = false)
         {
             _storedStat = stat;
-            txt_statValue.text = invertValue ?(stat.MaxValue - stat.CurrentValue).ToString("F0") : stat.CurrentValue.ToString("F0");
+            txt_statValue.text = invertValue ? (stat.MaxValue - stat.CurrentValue).ToString("F0") : stat.CurrentValue.ToString("F0");
             _storedStat.OnStatUpdated += HandleStatUpdated;
         }
 
@@ -24,16 +24,16 @@ namespace MilasQuest.UI
                 _storedStat.OnStatUpdated -= HandleStatUpdated;
         }
 
-        protected virtual void HandleStatUpdated(Stat stat)
+        protected virtual void HandleStatUpdated(Stat _)
         {
-            AnimateUI(stat.CurrentValue.ToString("F0"));
+            AnimateUI();
         }
 
-        protected virtual void AnimateUI(string newValue)
+        protected virtual void AnimateUI(string overrideValue = "")
         {
             txt_statValue.transform.DOComplete();
             txt_statValue.transform.DOPunchScale(Vector3.one * 0.5f, 0.3f, 5, 0.3f);
-            txt_statValue.text = newValue;
+            txt_statValue.text = string.IsNullOrEmpty(overrideValue) ? _storedStat.CurrentValue.ToString("F0") : overrideValue;
         }
     }
 }

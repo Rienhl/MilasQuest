@@ -1,11 +1,11 @@
 ﻿using MilasQuest.GameData;
-using MilasQuest.Grids.GameData;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 
 namespace MilasQuest.EditorTools
 {
+
     public class EditorWindow_DataManager : EditorWindow
     {
         CellTypeData[] _cellDatas;

@@ -50,7 +50,7 @@ namespace MilasQuest.Grids
 
             CellSize = _gridViewSettings.cellSize;
             _cellHalfSize = _gridViewSettings.cellSize * 0.5f;
-            ActiveInputRadius = _cellHalfSize * _gridViewSettings.validInputRatio;
+            ActiveInputRadius = _gridViewSettings.validInputRatio;
             GridBounds = new Bounds(Vector3.zero, new Vector3(grid.Dimension.X * gridViewSettings.cellSize, grid.Dimension.Y * gridViewSettings.cellSize));
 
             _gridState.OnCellAdded += HandleOnCellAdded;

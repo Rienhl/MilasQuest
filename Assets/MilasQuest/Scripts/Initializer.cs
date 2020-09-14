@@ -1,10 +1,7 @@
-﻿using Microsoft.Win32.SafeHandles;
-using MilasQuest.GameData;
+﻿using MilasQuest.GameData;
 using MilasQuest.InputManagement;
 using MilasQuest.Pools;
 using MilasQuest.UI;
-using System;
-using System.Linq;
 using UnityEngine;
 
 namespace MilasQuest
@@ -13,7 +10,7 @@ namespace MilasQuest
     {
         [SerializeField] private PoolData[] pools;
         [SerializeField] private LevelController levelController;
-        [SerializeField] private LevelData[] levelDatas;
+        [SerializeField] protected LevelData[] levelDatas;
 
         [SerializeField] private MainMenuPanel mainMenuPanel;
         [SerializeField] private LevelPassedPanel levelPassedPanel;
@@ -44,6 +41,11 @@ namespace MilasQuest
             levelController.OnSuccess += HandleOnLevelSuccess;
             levelController.OnFailure += HandleOnLevelFailure;
             mainMenuPanel.Hide();
+        }
+
+        public void SetLevelDatas(LevelData[] levelDatas)
+        {
+            this.levelDatas = levelDatas;
         }
 
         private void HandleOnLevelSuccess()
@@ -89,6 +91,8 @@ namespace MilasQuest
         {
             levelController.ResetLevel();
             levelController.SetupLevel(_inputHandler, levelDatas[_currentLevelIndex]);
+            levelController.OnSuccess += HandleOnLevelSuccess;
+            levelController.OnFailure += HandleOnLevelFailure;
         }
 
         private void HandleOnExitLevel()
